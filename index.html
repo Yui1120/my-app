@@ -1,1288 +1,1180 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>深夜の歪んだ動物園 - Midnight Zoo Horror</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons (CDN) -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Share+Tech+Mono&display=swap');
-    
-    .font-horror {
-      font-family: 'Creepster', cursive;
-    }
-    .font-mono-tech {
-      font-family: 'Share Tech Mono', monospace;
-    }
-    
-    /* CRTモニター風の走査線エフェクト */
-    .crt-effect {
-      position: relative;
-      overflow: hidden;
-    }
-    .crt-effect::after {
-      content: " ";
-      display: block;
-      position: absolute;
-      top: 0; left: 0; bottom: 0; right: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-      aspect-ratio: auto;
-      background-size: 100% 4px, 6px 100%;
-      pointer-events: none;
-      z-index: 10;
-    }
-    
-    /* CCTVのノイズアニメーション */
-    @keyframes cctv-noise {
-      0% { transform: translate(0,0) }
-      10% { transform: translate(-1%, -1%) }
-      20% { transform: translate(-2%, 1%) }
-      30% { transform: translate(1%, -2%) }
-      40% { transform: translate(-1%, 3%) }
-      50% { transform: translate(-3%, 1%) }
-      60% { transform: translate(2%, 1%) }
-      70% { transform: translate(-2%, 2%) }
-      80% { transform: translate(2%, -1%) }
-      90% { transform: translate(-1%, 1%) }
-      100% { transform: translate(0, 0) }
-    }
-    
-    .cctv-static {
-      animation: cctv-noise 0.2s infinite;
-      opacity: 0.15;
-    }
-
-    /* 点滅エフェクト */
-    @keyframes pulse-red {
-      0%, 100% { opacity: 0.2; }
-      50% { opacity: 0.8; }
-    }
-    .danger-pulse {
-      animation: pulse-red 1.5s infinite;
-    }
-
-    /* スクロールバー非表示 */
-    ::-webkit-scrollbar {
-      display: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>バケモノレストラン 〜闇の食材錬成厨房〜</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=New+Tegomin&family=Yuji+Syuku&display=swap');
+        
+        body {
+            font-family: 'Yuji Syuku', 'New Tegomin', serif;
+            background-color: #0c0a0f;
+            color: #e2e8f0;
+        }
+        .title-font {
+            font-family: 'Dela Gothic One', sans-serif;
+        }
+        /* 釜・オーブンの妖しいグツグツ＆ゴトゴト揺れ */
+        @keyframes rumble {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-2px, -1px) rotate(-1deg); }
+            20% { transform: translate(-1px, 2px) rotate(1deg); }
+            30% { transform: translate(1px, -1px) rotate(0deg); }
+            40% { transform: translate(-1px, 1px) rotate(1deg); }
+            50% { transform: translate(2px, -2px) rotate(-1deg); }
+            60% { transform: translate(-2px, 1px) rotate(0deg); }
+            70% { transform: translate(1px, 2px) rotate(1deg); }
+            80% { transform: translate(-1px, -1px) rotate(-1deg); }
+            90% { transform: translate(2px, 1px) rotate(0deg); }
+        }
+        .oven-shaking {
+            animation: rumble 0.5s infinite;
+        }
+        /* 怪しいガス・湯気の立ち上り */
+        @keyframes gasUp {
+            0% { transform: translateY(10px) scale(0.8); opacity: 0; }
+            50% { opacity: 0.6; }
+            100% { transform: translateY(-70px) scale(1.3); opacity: 0; }
+        }
+        .gas-bubble {
+            animation: gasUp 2.5s infinite ease-out;
+        }
+        /* スライム状のぬるぬる動作 */
+        @keyframes slimeWobble {
+            0%, 100% { transform: scaleY(1) scaleX(1); }
+            50% { transform: scaleY(0.85) scaleX(1.1); }
+        }
+        .slime-ui {
+            animation: slimeWobble 4s infinite ease-in-out;
+        }
+    </style>
 </head>
-<body class="bg-neutral-950 text-neutral-200 select-none overflow-hidden h-screen w-screen flex flex-col justify-between font-sans">
+<body class="min-h-screen flex flex-col justify-between selection:bg-lime-500 selection:text-black">
 
-  <!-- タイトル画面 / ストーリー導入 -->
-  <div id="start-screen" class="absolute inset-0 bg-black z-50 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-1000">
-    <!-- 背景に歪んだ動物園の画像を使用（暗く、不気味に加工） -->
-    <div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity filter blur-[2px]" style="background-image: url('https://yui1120.github.io/my-app/image04.jpg');"></div>
-    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
-
-    <div class="relative z-10 max-w-2xl flex flex-col items-center">
-      <h1 class="text-6xl md:text-8xl text-red-600 font-horror tracking-wider mb-6 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)] animate-pulse">
-        TWISTED ZOO
-      </h1>
-      <p class="text-xs font-mono-tech text-red-500 tracking-widest mb-8 uppercase">Warning: Unidentified entities detected inside the park</p>
-      
-      <div class="bg-neutral-900/90 border border-neutral-800 p-6 rounded-lg text-left text-neutral-300 text-sm md:text-base mb-8 space-y-3 shadow-2xl backdrop-blur-sm max-h-[250px] overflow-y-auto">
-        <p class="font-bold text-red-400">【記録: 2026年6月2日 - 深夜巡回報告】</p>
-        <p>深夜、閉園後の動物園で異常事態が発生した。飼育されていた動物たちが急速に変異し、檻を破壊して園内を徘徊している。</p>
-        <p>君は取り残された夜間警備員だ。メイン電力は落ち、予備電源のみが稼働している。</p>
-        <p>脱出するには、園内の各エリアに隠された <span class="text-yellow-400 font-bold">3つの「ゲートキー（鍵）」</span> を回収し、南側の <span class="text-emerald-400 font-bold">「非常脱出ゲート」</span> に向かわねばならない。</p>
-        <p class="text-red-400 font-bold">【注意】徘徊する変異体に接触すると即座に命を落とす。奴らの視界から隠れるか、走って逃げ延びろ。監視カメラ（CCTV）の映像が奴らの位置を特定する手がかりになるはずだ。</p>
-      </div>
-
-      <button id="start-btn" class="px-8 py-4 bg-red-950 hover:bg-red-900 border-2 border-red-600 text-red-200 hover:text-white font-bold text-xl rounded-md transition duration-300 shadow-[0_0_15px_rgba(220,38,38,0.3)] hover:shadow-[0_0_25px_rgba(220,38,38,0.6)] uppercase tracking-widest flex items-center gap-3">
-        <i data-lucide="play" class="w-6 h-6"></i> 探索を開始する
-      </button>
-      
-      <p class="text-xs text-neutral-500 mt-6 font-mono-tech">Recommended: Use headphones for full immersion.</p>
-    </div>
-  </div>
-
-  <!-- メインゲームインターフェース -->
-  <div class="flex-1 flex flex-col md:flex-row h-full relative overflow-hidden">
-    
-    <!-- 左側: メイン2.5Dゲーム画面 (Canvas) -->
-    <div class="flex-1 relative flex flex-col bg-neutral-900 border-b md:border-b-0 md:border-r border-neutral-800">
-      <!-- 上部ステータスバー -->
-      <div class="bg-neutral-950 p-3 flex justify-between items-center border-b border-neutral-800 font-mono-tech text-xs tracking-wider">
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping"></span>
-          <span class="text-red-500 font-bold">LIVE: ZOO_SECTOR_MAIN</span>
+    <!-- ヘッダー -->
+    <header class="bg-black/90 border-b-2 border-lime-500/30 p-4 sticky top-0 z-50 shadow-[0_4px_20px_rgba(132,204,22,0.15)]">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <h1 class="title-font text-xl md:text-2xl text-lime-400 tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-ghost text-purple-500 animate-bounce"></i>
+                バケモノレストラン <span class="text-xs md:text-sm text-yellow-500 font-normal">〜闇の食材錬成厨房〜</span>
+            </h1>
+            <div class="flex gap-2">
+                <button onclick="switchTab('kitchen')" class="px-4 py-2 rounded-lg font-bold transition text-xs flex items-center gap-1 bg-lime-500 text-black shadow-[0_0_10px_rgba(132,204,22,0.5)]" id="btn-kitchen">
+                    <i class="fa-solid fa-fire"></i> 暗黒厨房
+                </button>
+                <button onclick="switchTab('collection')" class="px-4 py-2 rounded-lg font-bold transition text-xs flex items-center gap-1 text-purple-300 hover:bg-purple-950/40 border border-purple-800/40" id="btn-collection">
+                    <i class="fa-solid fa-book-skull"></i> 闇図鑑 (<span id="unlocked-count">0</span>)
+                </button>
+            </div>
         </div>
-        <div class="flex items-center gap-4">
-          <div class="text-neutral-400">
-            KEYS: <span id="keys-count" class="text-yellow-400 font-bold">0</span> / 3
-          </div>
-          <div class="text-neutral-400">
-            STAMINA: <span id="stamina-val" class="text-blue-400 font-bold">100</span>%
-          </div>
-        </div>
-      </div>
+    </header>
 
-      <!-- キャンバスエリア -->
-      <div class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
-        <canvas id="gameCanvas" class="max-w-full max-h-full aspect-square md:aspect-video object-contain"></canvas>
+    <!-- メインコンテンツ -->
+    <main class="max-w-5xl w-full mx-auto p-4 flex-grow">
         
-        <!-- 暗闇オーバレイ（懐中電灯エフェクトを強調） -->
-        <div class="absolute inset-0 pointer-events-none bg-radial-gradient"></div>
-        
-        <!-- ゲームオーバー / クリア表示用オーバーレイ -->
-        <div id="game-overlay" class="absolute inset-0 bg-black/90 flex-col items-center justify-center hidden z-30 p-6 text-center">
-          <div id="overlay-content" class="max-w-md">
-            <!-- JSで動的に書き換え -->
-          </div>
-        </div>
-
-        <!-- 危険警告エフェクト（モンスターが近いとき） -->
-        <div id="heartbeat-overlay" class="absolute inset-0 border-[8px] border-red-900/0 pointer-events-none transition-all duration-300 z-20"></div>
-        
-        <!-- タッチデバイス用のバーチャルアナログパッド（モバイルフレンドリー） -->
-        <div id="mobile-controls" class="absolute bottom-4 left-4 right-4 flex justify-between items-end md:hidden z-20 pointer-events-none">
-          <!-- 移動ジョイスティック -->
-          <div id="joystick-container" class="w-28 h-28 bg-neutral-900/60 rounded-full border border-neutral-700 relative pointer-events-auto flex items-center justify-center">
-            <div id="joystick-knob" class="w-10 h-10 bg-red-700/80 rounded-full cursor-pointer absolute shadow-lg transition-all"></div>
-          </div>
-          <!-- 走る・隠れるアクションボタン -->
-          <div class="flex flex-col gap-2 pointer-events-auto">
-            <button id="mobile-run-btn" class="w-14 h-14 bg-blue-900/80 border border-blue-500 rounded-full text-white flex items-center justify-center active:bg-blue-700 font-bold shadow-lg">
-              RUN
-            </button>
-            <button id="mobile-hide-btn" class="w-14 h-14 bg-neutral-800/80 border border-neutral-600 rounded-full text-white flex items-center justify-center active:bg-neutral-600 font-bold shadow-lg">
-              HIDE
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 下部キー操作解説 (デスクトップ向け) -->
-      <div class="hidden md:flex bg-neutral-950 p-2.5 text-xs text-neutral-400 justify-between border-t border-neutral-800">
-        <div>移動: <span class="bg-neutral-800 px-1 rounded text-white font-mono">WASD</span> または <span class="bg-neutral-800 px-1 rounded text-white font-mono">矢印キー</span></div>
-        <div>ダッシュ: <span class="bg-neutral-800 px-1 rounded text-white font-mono">Shiftキー</span> (スタミナ消費)</div>
-        <div>ロッカーに隠れる: <span class="bg-neutral-800 px-1 rounded text-white font-mono">Spaceキー</span> (近くの物陰で)</div>
-      </div>
-    </div>
-
-    <!-- 右側: 監視カメラ(CCTV)モニタールーム (HTML) -->
-    <div class="w-full md:w-80 bg-neutral-950 flex flex-col border-t md:border-t-0 border-neutral-800 shrink-0 font-mono-tech select-none">
-      <div class="p-3 bg-neutral-900 border-b border-neutral-800 text-xs font-bold text-red-500 flex items-center gap-2">
-        <i data-lucide="monitor" class="w-4 h-4"></i>
-        <span>SECURITY MONITOR SYSTEM v1.4</span>
-      </div>
-
-      <!-- カメラ映像エリア -->
-      <div class="relative aspect-video bg-black border-b border-neutral-800 overflow-hidden crt-effect">
-        <!-- 画面ノイズ -->
-        <div class="absolute inset-0 bg-[url('data:image/svg+xml;utf8,<svg viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\"><filter id=\"n\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.8\"/></filter><rect width=\"100\" height=\"100\" filter=\"url(%23n)\" opacity=\"0.15\"/></svg>')] cctv-static pointer-events-none z-10"></div>
-        
-        <!-- カメラ画像表示 (yui1120.github.ioの画像やノイズイメージ) -->
-        <div id="cctv-view" class="w-full h-full relative transition-all duration-300">
-          <img id="cctv-img" src="https://yui1120.github.io/my-app/image04.jpg" class="w-full h-full object-cover opacity-60 mix-blend-color-dodge filter brightness-75 contrast-125" alt="CCTV Feed">
-          <div class="absolute top-2 left-2 bg-black/60 px-1.5 py-0.5 rounded text-[10px] text-red-500 font-mono tracking-widest flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping"></span>
-            <span id="cctv-label">CAM 01: MAIN GATE</span>
-          </div>
-          <!-- カメラ内グリッド、タイムスタンプ -->
-          <div class="absolute bottom-2 left-2 text-[9px] text-green-400">
-            2026-06-02 <span id="cctv-time">03:14:22</span>
-          </div>
-          <div id="cctv-status" class="absolute bottom-2 right-2 text-[9px] text-red-500 font-bold danger-pulse">
-            LIVE FEED
-          </div>
-        </div>
-      </div>
-
-      <!-- カメラ切り替え用コントローラー -->
-      <div class="p-3 bg-neutral-950 flex-1 flex flex-col justify-between">
-        <div>
-          <div class="text-xs text-neutral-400 mb-2">SELECT FEED (カメラ切り替え):</div>
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <button onclick="switchCamera(1)" id="cam-btn-1" class="p-2 border border-red-950 bg-red-950/30 text-red-400 rounded hover:bg-red-900/30 text-left flex items-center gap-1 transition">
-              <i data-lucide="video" class="w-3.5 h-3.5"></i> CAM 1: 中央広場
-            </button>
-            <button onclick="switchCamera(2)" id="cam-btn-2" class="p-2 border border-neutral-800 bg-neutral-900 text-neutral-400 rounded hover:bg-neutral-800 text-left flex items-center gap-1 transition">
-              <i data-lucide="video" class="w-3.5 h-3.5"></i> CAM 2: 猛獣エリア
-            </button>
-            <button onclick="switchCamera(3)" id="cam-btn-3" class="p-2 border border-neutral-800 bg-neutral-900 text-neutral-400 rounded hover:bg-neutral-800 text-left flex items-center gap-1 transition">
-              <i data-lucide="video" class="w-3.5 h-3.5"></i> CAM 3: 鳥類温室
-            </button>
-            <button onclick="switchCamera(4)" id="cam-btn-4" class="p-2 border border-neutral-800 bg-neutral-900 text-neutral-400 rounded hover:bg-neutral-800 text-left flex items-center gap-1 transition">
-              <i data-lucide="video" class="w-3.5 h-3.5"></i> CAM 4: 南門ゲート
-            </button>
-          </div>
-        </div>
-
-        <!-- 監視装置のログ / ステータス -->
-        <div class="mt-4 border border-neutral-900 bg-neutral-950 p-2.5 rounded text-[11px] leading-relaxed">
-          <div class="text-red-500 font-bold border-b border-neutral-900 pb-1 mb-1.5 flex items-center gap-1">
-            <i data-lucide="terminal" class="w-3 h-3"></i> SYSTEM SECURITY LOG
-          </div>
-          <div id="security-log" class="space-y-1 text-neutral-400 h-24 overflow-y-auto font-mono text-[10px]">
-            <div>[03:00] セキュリティ接続確立。</div>
-            <div>[03:02] 非常電源に切り替わりました。</div>
-            <div class="text-yellow-500">[03:05] 変異種が徘徊中。注意してください。</div>
-          </div>
-        </div>
-
-        <!-- ミュートボタン -->
-        <div class="mt-2 flex justify-end">
-          <button id="sound-toggle-btn" class="text-xs text-neutral-500 hover:text-neutral-300 flex items-center gap-1 px-2 py-1 rounded border border-neutral-800">
-            <i id="sound-icon" data-lucide="volume-2" class="w-3.5 h-3.5"></i>
-            <span id="sound-text">SOUND: ON</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ゲーム内部スクリプト -->
-  <script>
-    // --- グローバル変数 & 設定 ---
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    
-    // キャンバスの標準アスペクト比設定
-    function resizeCanvas() {
-      const parent = canvas.parentElement;
-      canvas.width = parent.clientWidth;
-      canvas.height = parent.clientHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    // 音声管理（Web Audio APIによるホラー演出用）
-    let audioCtx = null;
-    let heartbeatOsc = null;
-    let mainGain = null;
-    let soundEnabled = true;
-
-    // ゲーム状態
-    let keysCollected = 0;
-    const totalKeys = 3;
-    let playerStamina = 100;
-    let isSprinting = false;
-    let isHiding = false;
-    let gameState = 'title'; // title, playing, gameover, win
-    let currentCameraId = 1;
-
-    // マップ設定
-    const mapSize = 1000; // 1000x1000ピクセルの仮想空間
-    const gridCount = 20;
-    const cellSize = mapSize / gridCount;
-
-    // プレイヤーオブジェクト
-    const player = {
-      x: 100,
-      y: 100,
-      radius: 12,
-      angle: 0,
-      speed: 3,
-      sprintSpeed: 5,
-      isMoving: false,
-      hideTimer: 0
-    };
-
-    // モンスターオブジェクト（園内を徘徊する変異した動物たち）
-    const monsters = [
-      {
-        id: 'Lion',
-        name: '変異ライオン',
-        x: 500,
-        y: 200,
-        speed: 1.8,
-        aggroSpeed: 4.2,
-        radius: 16,
-        color: '#ff3333',
-        waypoints: [{x: 200, y: 200}, {x: 800, y: 200}, {x: 800, y: 500}, {x: 200, y: 500}],
-        waypointIndex: 0,
-        state: 'patrol', // patrol, chase, search
-        targetX: 0,
-        targetY: 0,
-        searchTimer: 0,
-        detectedPlayer: false,
-        angle: 0
-      },
-      {
-        id: 'Gorilla',
-        name: '異形ゴリラ',
-        x: 200,
-        y: 800,
-        speed: 1.5,
-        aggroSpeed: 3.8,
-        radius: 18,
-        color: '#9900ff',
-        waypoints: [{x: 200, y: 800}, {x: 500, y: 800}, {x: 500, y: 500}, {x: 200, y: 500}],
-        waypointIndex: 0,
-        state: 'patrol',
-        targetX: 0,
-        targetY: 0,
-        searchTimer: 0,
-        detectedPlayer: false,
-        angle: 0
-      },
-      {
-        id: 'Owl',
-        name: '夜行巨大梟',
-        x: 800,
-        y: 800,
-        speed: 2.2,
-        aggroSpeed: 4.5,
-        radius: 14,
-        color: '#00ffff',
-        waypoints: [{x: 800, y: 800}, {x: 800, y: 400}, {x: 500, y: 400}, {x: 500, y: 800}],
-        waypointIndex: 0,
-        state: 'patrol',
-        targetX: 0,
-        targetY: 0,
-        searchTimer: 0,
-        detectedPlayer: false,
-        angle: 0
-      }
-    ];
-
-    // マップ障害物（壁）のデータ (0: 空白, 1: コンクリート壁, 2: 檻・格子, 3: ロッカー（隠れ場所）, 4: 鍵, 5: 非常ゲート)
-    const mapGrid = [
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,3,1],
-      [1,0,0,0,1,0,1,1,0,1,0,1,1,0,1,0,1,1,0,1],
-      [1,0,3,0,0,0,1,4,0,0,0,0,1,0,0,0,1,0,0,1],
-      [1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,0,1,1,0,1],
-      [1,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,1,0,1],
-      [1,0,1,1,2,2,1,0,1,0,1,0,1,1,2,2,1,1,0,1],
-      [1,0,2,0,0,0,2,0,1,0,1,0,2,0,0,0,2,0,0,1],
-      [1,0,2,0,4,0,2,0,0,0,0,0,2,0,0,0,2,0,3,1],
-      [1,0,2,2,2,2,2,0,1,1,1,0,2,2,2,2,2,0,0,1],
-      [1,0,0,0,0,0,0,0,1,3,1,0,0,0,0,0,0,0,1,1],
-      [1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1],
-      [1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,3,1],
-      [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,0,1],
-      [1,0,0,3,1,0,1,4,1,0,1,0,1,0,1,0,1,1,0,1],
-      [1,1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1],
-      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-      [1,0,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1],
-      [1,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,1],
-      [1,1,1,1,1,1,1,1,1,5,5,1,1,1,1,1,1,1,1,1]
-    ];
-
-    // アイテム（鍵）の情報
-    const keys = [
-      { x: 7.5 * cellSize, y: 3.5 * cellSize, collected: false },
-      { x: 4.5 * cellSize, y: 8.5 * cellSize, collected: false },
-      { x: 7.5 * cellSize, y: 14.5 * cellSize, collected: false }
-    ];
-
-    // 隠れ場所（ロッカー）の座標リスト
-    const hidingSpots = [];
-    // 脱出ゲートの座標
-    const escapeGate = { x: 9.5 * cellSize, y: 19 * cellSize, width: cellSize * 2, height: cellSize };
-
-    // マップ解析して隠れ場所などを取得
-    for (let r = 0; r < gridCount; r++) {
-      for (let c = 0; c < gridCount; c++) {
-        if (mapGrid[r][c] === 3) {
-          hidingSpots.push({
-            x: c * cellSize + cellSize/2,
-            y: r * cellSize + cellSize/2,
-            radius: 20
-          });
-        }
-      }
-    }
-
-    // カメラ座標
-    const cameras = {
-      1: { name: "CAM 1: 中央広場", x: 500, y: 500, angle: 0, range: 250 },
-      2: { name: "CAM 2: 猛獣エリア", x: 250, y: 250, angle: Math.PI/4, range: 220 },
-      3: { name: "CAM 3: 鳥類温室", x: 750, y: 250, angle: Math.PI*3/4, range: 220 },
-      4: { name: "CAM 4: 南門ゲート", x: 500, y: 850, angle: -Math.PI/2, range: 250 }
-    };
-
-    // キー入力監視
-    const keysPressed = {};
-    window.addEventListener('keydown', (e) => {
-      keysPressed[e.code] = true;
-      
-      // スタート画面スキップ
-      if (gameState === 'title' && (e.code === 'Enter' || e.code === 'Space')) {
-        startGame();
-      }
-
-      // 隠れるアクションの切り替え
-      if (e.code === 'Space' && gameState === 'playing') {
-        toggleHide();
-      }
-    });
-    window.addEventListener('keyup', (e) => {
-      keysPressed[e.code] = false;
-    });
-
-    // モバイル用バーチャルジョイスティックの制御
-    let joystickActive = false;
-    let joystickStart = { x: 0, y: 0 };
-    let joystickMove = { x: 0, y: 0 };
-    const joystickKnob = document.getElementById('joystick-knob');
-    const joystickContainer = document.getElementById('joystick-container');
-
-    joystickContainer.addEventListener('touchstart', (e) => {
-      joystickActive = true;
-      const touch = e.touches[0];
-      const rect = joystickContainer.getBoundingClientRect();
-      joystickStart = {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2
-      };
-      updateJoystick(touch);
-    });
-
-    window.addEventListener('touchmove', (e) => {
-      if (!joystickActive) return;
-      updateJoystick(e.touches[0]);
-    }, { passive: false });
-
-    window.addEventListener('touchend', () => {
-      if (!joystickActive) return;
-      joystickActive = false;
-      joystickKnob.style.transform = 'translate(0px, 0px)';
-      joystickMove = { x: 0, y: 0 };
-      player.isMoving = false;
-    });
-
-    function updateJoystick(touch) {
-      const dx = touch.clientX - joystickStart.x;
-      const dy = touch.clientY - joystickStart.y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      const maxDist = 40; // 移動限界ピクセル数
-
-      if (dist === 0) return;
-
-      const angle = Math.atan2(dy, dx);
-      const moveX = Math.min(dist, maxDist) * Math.cos(angle);
-      const moveY = Math.min(dist, maxDist) * Math.sin(angle);
-
-      joystickKnob.style.transform = `translate(${moveX}px, ${moveY}px)`;
-      
-      // プレイヤーの移動ベクトルに反映
-      joystickMove = {
-        x: Math.cos(angle),
-        y: Math.sin(angle)
-      };
-      player.isMoving = true;
-      player.angle = angle;
-    }
-
-    // モバイルアクションボタン
-    const mobileRunBtn = document.getElementById('mobile-run-btn');
-    mobileRunBtn.addEventListener('touchstart', () => { isSprinting = true; });
-    mobileRunBtn.addEventListener('touchend', () => { isSprinting = false; });
-
-    const mobileHideBtn = document.getElementById('mobile-hide-btn');
-    mobileHideBtn.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      toggleHide();
-    });
-
-    // --- Web Audio API による恐怖サウンド設計 ---
-    function initAudio() {
-      if (audioCtx) return;
-      
-      try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        audioCtx = new AudioContext();
-        
-        mainGain = audioCtx.createGain();
-        mainGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        mainGain.connect(audioCtx.destination);
-        
-        // 低周波パルス音による不穏な心臓鼓動音
-        heartbeatOsc = audioCtx.createOscillator();
-        heartbeatOsc.type = 'sine';
-        heartbeatOsc.frequency.setValueAtTime(55, audioCtx.currentTime); // 低い重低音
-        
-        const heartbeatGain = audioCtx.createGain();
-        heartbeatGain.gain.setValueAtTime(0, audioCtx.currentTime);
-        
-        heartbeatOsc.connect(heartbeatGain);
-        heartbeatGain.connect(mainGain);
-        heartbeatOsc.start();
-        
-        // 心拍ループ再生
-        let isBeat = false;
-        setInterval(() => {
-          if (!soundEnabled || gameState !== 'playing') return;
-          
-          // モンスターが近くにいるほど心拍数を上げ、ボリュームを上げる
-          let minDistance = 9999;
-          monsters.forEach(m => {
-            const d = Math.hypot(m.x - player.x, m.y - player.y);
-            if (d < minDistance) minDistance = d;
-          });
-          
-          let beatInterval = 1000; // 通常時1秒に1回
-          let beatVolume = 0.15;
-          
-          if (minDistance < 150) {
-            beatInterval = 300; // 最接近時
-            beatVolume = 0.8;
-          } else if (minDistance < 300) {
-            beatInterval = 600;
-            beatVolume = 0.4;
-          }
-
-          // ド、ドッ、という2連拍動のシミュレート
-          heartbeatGain.gain.setValueAtTime(beatVolume, audioCtx.currentTime);
-          heartbeatGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-          
-          setTimeout(() => {
-            if (!soundEnabled) return;
-            heartbeatGain.gain.setValueAtTime(beatVolume * 0.7, audioCtx.currentTime);
-            heartbeatGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-          }, 180);
-          
-        }, 1000); // 動的間隔の処理は簡易的にタイマー間隔を動的にするか固定心拍としてノイズ比率を変える
-        
-        // 環境ノイズ（持続音）
-        createHumNoise();
-        
-      } catch (err) {
-        console.error("Audio Context Init Failed: ", err);
-      }
-    }
-
-    function playBeep(freq, duration) {
-      if (!soundEnabled || !audioCtx) return;
-      const osc = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-      
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-      
-      gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-      
-      osc.connect(gainNode);
-      gainNode.connect(mainGain);
-      
-      osc.start();
-      osc.stop(audioCtx.currentTime + duration);
-    }
-
-    // 機械のハミングノイズ
-    function createHumNoise() {
-      const bufferSize = audioCtx.sampleRate * 2;
-      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
-      }
-      
-      const whiteNoise = audioCtx.createBufferSource();
-      whiteNoise.buffer = noiseBuffer;
-      whiteNoise.loop = true;
-      
-      // フィルターで低音の不気味な響きにする
-      const filter = audioCtx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(120, audioCtx.currentTime);
-      
-      const noiseGain = audioCtx.createGain();
-      noiseGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-      
-      whiteNoise.connect(filter);
-      filter.connect(noiseGain);
-      noiseGain.connect(mainGain);
-      
-      whiteNoise.start();
-    }
-
-    // --- ゲーム開始処理 ---
-    document.getElementById('start-btn').addEventListener('click', () => {
-      startGame();
-    });
-
-    function startGame() {
-      initAudio();
-      
-      // スタート画面のフェードアウト
-      const startScreen = document.getElementById('start-screen');
-      startScreen.style.opacity = '0';
-      setTimeout(() => {
-        startScreen.style.display = 'none';
-      }, 1000);
-
-      // ステート初期化
-      gameState = 'playing';
-      keysCollected = 0;
-      playerStamina = 100;
-      isHiding = false;
-      player.x = 100;
-      player.y = 100;
-      player.angle = 0;
-      
-      // 鍵をランダムっぽく配置
-      keys.forEach(k => k.collected = false);
-      document.getElementById('keys-count').textContent = '0';
-      
-      // モンスター再配置
-      monsters[0].x = 500; monsters[0].y = 200; monsters[0].state = 'patrol';
-      monsters[1].x = 200; monsters[1].y = 800; monsters[1].state = 'patrol';
-      monsters[2].x = 800; monsters[2].y = 800; monsters[2].state = 'patrol';
-
-      addLog("探索フェーズ開始。南のゲートから脱出してください。");
-      playBeep(440, 0.4);
-      
-      // ゲームループ起動
-      requestAnimationFrame(gameLoop);
-    }
-
-    // ロッカーでの隠れる処理切り替え
-    function toggleHide() {
-      if (isHiding) {
-        isHiding = false;
-        addLog("物陰から出ました。");
-        playBeep(300, 0.1);
-      } else {
-        // 近くに隠れ場所があるか確認
-        let canHide = false;
-        for (const spot of hidingSpots) {
-          const d = Math.hypot(player.x - spot.x, player.y - spot.y);
-          if (d < 30) {
-            canHide = true;
-            break;
-          }
-        }
-        if (canHide) {
-          isHiding = true;
-          addLog("安全な物陰に身を潜めました。モンスターの目を眩ませます。");
-          playBeep(600, 0.2);
-        } else {
-          addLog("ここには隠れる場所がない！");
-          playBeep(180, 0.15);
-        }
-      }
-    }
-
-    // --- カメラ切り替え ---
-    function switchCamera(id) {
-      if (!cameras[id]) return;
-      currentCameraId = id;
-      playBeep(880, 0.05);
-
-      // ボタンUIの切り替え
-      for (let i = 1; i <= 4; i++) {
-        const btn = document.getElementById(`cam-btn-${i}`);
-        if (i === id) {
-          btn.classList.add('border-red-600', 'bg-red-950/30', 'text-red-400');
-          btn.classList.remove('border-neutral-800', 'bg-neutral-900', 'text-neutral-400');
-        } else {
-          btn.classList.remove('border-red-600', 'bg-red-950/30', 'text-red-400');
-          btn.classList.add('border-neutral-800', 'bg-neutral-900', 'text-neutral-400');
-        }
-      }
-
-      // 監視画面のラベルと時間更新
-      document.getElementById('cctv-label').textContent = cameras[id].name.toUpperCase();
-      
-      // カメラの映像風変化（ご提示いただいた画像を使用）
-      const img = document.getElementById('cctv-img');
-      img.style.filter = `brightness(${(Math.random() * 0.4 + 0.4).toFixed(2)}) contrast(1.3) grayscale(0.8) hue-rotate(${id * 45}deg)`;
-      
-      // ノイズを一瞬入れる
-      img.style.opacity = '0.2';
-      setTimeout(() => {
-        img.style.opacity = '0.6';
-      }, 150);
-
-      addLog(`CCTVモニターを [${cameras[id].name}] に変更しました。`);
-    }
-
-    // セキュリティログに追記
-    const logContainer = document.getElementById('security-log');
-    function addLog(text) {
-      const now = new Date();
-      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-      const div = document.createElement('div');
-      div.innerHTML = `<span class="text-neutral-600">[${timeStr}]</span> ${text}`;
-      logContainer.appendChild(div);
-      logContainer.scrollTop = logContainer.scrollHeight;
-      
-      // ログ数を制限
-      while (logContainer.children.length > 25) {
-        logContainer.removeChild(logContainer.firstChild);
-      }
-    }
-
-    // --- 音声ミュート切り替え ---
-    const soundBtn = document.getElementById('sound-toggle-btn');
-    soundBtn.addEventListener('click', () => {
-      soundEnabled = !soundEnabled;
-      const icon = document.getElementById('sound-icon');
-      const text = document.getElementById('sound-text');
-      
-      if (soundEnabled) {
-        icon.setAttribute('data-lucide', 'volume-2');
-        text.textContent = 'SOUND: ON';
-        if (mainGain && audioCtx) {
-          mainGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        }
-      } else {
-        icon.setAttribute('data-lucide', 'volume-x');
-        text.textContent = 'SOUND: OFF';
-        if (mainGain && audioCtx) {
-          mainGain.gain.setValueAtTime(0, audioCtx.currentTime);
-        }
-      }
-      lucide.createIcons();
-    });
-
-    // タイムスタンプリアルタイム更新
-    setInterval(() => {
-      const now = new Date();
-      document.getElementById('cctv-time').textContent = now.toLocaleTimeString();
-    }, 1000);
-
-
-    // --- 物理衝突判定 & ゲーム内システム ---
-
-    // 壁との衝突判定
-    function checkWallCollision(x, y, radius) {
-      // 四角いキャラクターの外周４点などでシンプルに計算
-      const checkPoints = [
-        {x: x - radius, y: y - radius},
-        {x: x + radius, y: y - radius},
-        {x: x - radius, y: y + radius},
-        {x: x + radius, y: y + radius}
-      ];
-
-      for (const p of checkPoints) {
-        const gridX = Math.floor(p.x / cellSize);
-        const gridY = Math.floor(p.y / cellSize);
-
-        if (gridX < 0 || gridX >= gridCount || gridY < 0 || gridY >= gridCount) {
-          return true; // 画面外は壁
-        }
-
-        const tileType = mapGrid[gridY][gridX];
-        // 1:壁, 2:檻, 5: 非常ゲート（3つの鍵が揃っていない場合は壁として扱う）
-        if (tileType === 1 || tileType === 2) {
-          return true;
-        }
-        if (tileType === 5 && keysCollected < totalKeys) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-
-    // --- メインゲームループ ---
-    let lastTime = 0;
-
-    function gameLoop(timestamp) {
-      if (gameState !== 'playing') return;
-
-      const dt = timestamp - lastTime;
-      lastTime = timestamp;
-
-      updatePlayer();
-      updateMonsters();
-      checkCollisions();
-      draw();
-
-      requestAnimationFrame(gameLoop);
-    }
-
-    // プレイヤーの移動と状態の更新
-    function updatePlayer() {
-      if (isHiding) {
-        // 隠れている間は動けないがスタミナ超回復
-        playerStamina = Math.min(100, playerStamina + 0.5);
-        document.getElementById('stamina-val').textContent = Math.floor(playerStamina);
-        return;
-      }
-
-      // ダッシュ判定 (Shiftキー またはモバイルでSprinting)
-      let currentSpeed = player.speed;
-      isSprinting = (keysPressed['ShiftLeft'] || keysPressed['ShiftRight'] || isSprinting) && playerStamina > 5;
-      
-      if (isSprinting && player.isMoving) {
-        currentSpeed = player.sprintSpeed;
-        playerStamina = Math.max(0, playerStamina - 0.6); // スタミナ消費
-      } else {
-        playerStamina = Math.min(100, playerStamina + 0.2); // 通常回復
-      }
-      document.getElementById('stamina-val').textContent = Math.floor(playerStamina);
-
-      let dx = 0;
-      let dy = 0;
-
-      // キーボード移動
-      if (keysPressed['KeyW'] || keysPressed['ArrowUp']) { dy = -1; }
-      if (keysPressed['KeyS'] || keysPressed['ArrowDown']) { dy = 1; }
-      if (keysPressed['KeyA'] || keysPressed['ArrowLeft']) { dx = -1; }
-      if (keysPressed['KeyD'] || keysPressed['ArrowRight']) { dx = 1; }
-
-      // 移動量の正規化
-      if (dx !== 0 || dy !== 0) {
-        const length = Math.sqrt(dx*dx + dy*dy);
-        player.angle = Math.atan2(dy, dx);
-        dx = (dx / length) * currentSpeed;
-        dy = (dy / length) * currentSpeed;
-        player.isMoving = true;
-      } else if (joystickActive) {
-        // モバイルジョイスティック
-        dx = joystickMove.x * currentSpeed;
-        dy = joystickMove.y * currentSpeed;
-      } else {
-        player.isMoving = false;
-      }
-
-      // 移動適用（滑り補正付）
-      if (player.isMoving) {
-        const newX = player.x + dx;
-        const newY = player.y + dy;
-
-        // X軸衝突判定
-        if (!checkWallCollision(newX, player.y, player.radius)) {
-          player.x = newX;
-        }
-        // Y軸衝突判定
-        if (!checkWallCollision(player.x, newY, player.radius)) {
-          player.y = newY;
-        }
-
-        // 境界値制限
-        player.x = Math.max(player.radius, Math.min(mapSize - player.radius, player.x));
-        player.y = Math.max(player.radius, Math.min(mapSize - player.radius, player.y));
-      }
-    }
-
-    // モンスター自律AIの更新
-    function updateMonsters() {
-      let playerClosestDistance = 9999;
-
-      monsters.forEach(m => {
-        const distToPlayer = Math.hypot(m.x - player.x, m.y - player.y);
-        if (distToPlayer < playerClosestDistance) {
-          playerClosestDistance = distToPlayer;
-        }
-
-        // 見通し判定 (レイキャストは簡易的に距離と角度、及び「隠れているか」で判定)
-        const inLightCone = distToPlayer < 180; // 警戒範囲
-        const canSee = inLightCone && !isHiding;
-
-        if (canSee && m.state !== 'chase') {
-          m.state = 'chase';
-          addLog(`<span class="text-red-500 font-bold">警告: [${m.name}] が生存者を確認。追跡中！</span>`);
-          playBeep(220, 0.5);
-        }
-
-        if (m.state === 'chase') {
-          m.targetX = player.x;
-          m.targetY = player.y;
-
-          // 追跡を諦める条件（プレイヤーが隠れるか、距離が離れすぎた場合）
-          if (isHiding || distToPlayer > 300) {
-            m.state = 'search';
-            m.searchTimer = 180; // 3秒間探索
-            addLog(`<span class="text-yellow-500">[${m.name}] がターゲットをロスト。周辺を捜索中。</span>`);
-          }
-        }
-
-        // 状態に応じた挙動
-        if (m.state === 'patrol') {
-          // 巡回ポイントへ移動
-          const target = m.waypoints[m.waypointIndex];
-          const distToWaypoint = Math.hypot(m.x - target.x, m.y - target.y);
-          
-          if (distToWaypoint < 10) {
-            m.waypointIndex = (m.waypointIndex + 1) % m.waypoints.length;
-          }
-          
-          moveMonsterTowards(m, target.x, target.y, m.speed);
-        } else if (m.state === 'chase') {
-          // プレイヤーを急襲
-          moveMonsterTowards(m, m.targetX, m.targetY, m.aggroSpeed);
-        } else if (m.state === 'search') {
-          // ロスト地点の周囲をうろうろ
-          m.searchTimer--;
-          if (m.searchTimer <= 0) {
-            m.state = 'patrol';
-            addLog(`[${m.name}] は通常巡回に戻りました。`);
-          }
-          // 少しだけジグザグ移動
-          const wanderX = m.targetX + Math.sin(m.searchTimer * 0.05) * 50;
-          const wanderY = m.targetY + Math.cos(m.searchTimer * 0.05) * 50;
-          moveMonsterTowards(m, wanderX, wanderY, m.speed);
-        }
-      });
-
-      // 心拍数に連動して周りの赤点滅エフェクトを制御
-      const borderOverlay = document.getElementById('heartbeat-overlay');
-      if (playerClosestDistance < 180) {
-        const intensity = (1 - (playerClosestDistance / 180)).toFixed(2);
-        borderOverlay.style.boxShadow = `inset 0 0 ${40 * intensity}px rgba(185, 28, 28, ${0.8 * intensity})`;
-      } else {
-        borderOverlay.style.boxShadow = 'none';
-      }
-    }
-
-    // モンスターの壁衝突を考慮した単純な移動ロジック
-    function moveMonsterTowards(m, targetX, targetY, speed) {
-      const angle = Math.atan2(targetY - m.y, targetX - m.x);
-      m.angle = angle;
-      const dx = Math.cos(angle) * speed;
-      const dy = Math.sin(angle) * speed;
-
-      const newX = m.x + dx;
-      const newY = m.y + dy;
-
-      if (!checkWallCollision(newX, m.y, m.radius)) {
-        m.x = newX;
-      } else {
-        // 壁にぶつかったらスライドするか逆方向に
-        m.x += Math.cos(angle + Math.PI/2) * speed * 0.5;
-      }
-
-      if (!checkWallCollision(m.x, newY, m.radius)) {
-        m.y = newY;
-      } else {
-        m.y += Math.sin(angle + Math.PI/2) * speed * 0.5;
-      }
-    }
-
-    // 衝突確認（鍵の入手、脱出、ゲームオーバー）
-    function checkCollisions() {
-      // 1. 鍵の回収
-      keys.forEach((key, index) => {
-        if (!key.collected) {
-          const d = Math.hypot(player.x - key.x, player.y - key.y);
-          if (d < player.radius + 10) {
-            key.collected = true;
-            keysCollected++;
-            document.getElementById('keys-count').textContent = keysCollected;
-            addLog(`<span class="text-yellow-400 font-bold">鍵を回収しました (${keysCollected}/${totalKeys})！</span>`);
-            playBeep(523.25, 0.4); // C5 ド
-
-            if (keysCollected === totalKeys) {
-              addLog(`<span class="text-emerald-400 font-bold">全ての鍵が揃った！南側の非常脱出ゲートが開放されました！</span>`);
-              playBeep(659.25, 0.6); // E5 ミ
-            }
-          }
-        }
-      });
-
-      // 2. モンスターとの衝突（ゲームオーバー）
-      monsters.forEach(m => {
-        const d = Math.hypot(player.x - m.x, player.y - m.y);
-        // 隠れている間は無敵（見つからない）
-        if (d < player.radius + m.radius && !isHiding) {
-          triggerGameOver();
-        }
-      });
-
-      // 3. ゴール判定
-      if (keysCollected === totalKeys) {
-        // 非常ゲートの判定 (南側 Y=19セルの位置)
-        if (player.y > 18.5 * cellSize && player.x > 8.5 * cellSize && player.x < 11.5 * cellSize) {
-          triggerWin();
-        }
-      }
-    }
-
-    // ゲームオーバー処理
-    function triggerGameOver() {
-      gameState = 'gameover';
-      playBeep(110, 1.2); // 低音
-      
-      const overlay = document.getElementById('game-overlay');
-      const content = document.getElementById('overlay-content');
-      overlay.classList.remove('hidden');
-      overlay.classList.add('flex');
-
-      content.innerHTML = `
-        <h2 class="text-5xl font-horror text-red-600 mb-4 animate-bounce">DIED IN DARKNESS</h2>
-        <p class="text-neutral-400 text-sm mb-6 leading-relaxed">
-          変異した生物によって暗闇の中に引きずり込まれました...<br>
-          動物園の歪んだ生態系の犠牲となりました。
-        </p>
-        <button onclick="restartGame()" class="px-6 py-3 bg-red-950 border border-red-600 text-red-300 font-bold rounded hover:bg-red-900 transition">
-          再び挑戦する
-        </button>
-      `;
-
-      addLog("<span class='text-red-600 font-bold'>[通信断絶] 生命反応が消失しました。</span>");
-    }
-
-    // ゲームクリア処理
-    function triggerWin() {
-      gameState = 'win';
-      playBeep(880, 0.2);
-      setTimeout(() => playBeep(1046.5, 0.4), 150); // ファンファーレ風
-      
-      const overlay = document.getElementById('game-overlay');
-      const content = document.getElementById('overlay-content');
-      overlay.classList.remove('hidden');
-      overlay.classList.add('flex');
-
-      content.innerHTML = `
-        <h2 class="text-5xl font-horror text-emerald-500 mb-4 tracking-widest">ESCAPED</h2>
-        <p class="text-neutral-400 text-sm mb-6 leading-relaxed">
-          おめでとうございます！君はすべての鍵を解除し、<br>
-          悪夢の広がる夜間動物園から生還することに成功した。
-        </p>
-        <button onclick="restartGame()" class="px-6 py-3 bg-emerald-950 border border-emerald-500 text-emerald-300 font-bold rounded hover:bg-emerald-900 transition">
-          もう一度遊ぶ
-        </button>
-      `;
-
-      addLog("<span class='text-emerald-500 font-bold'>[通信終了] 被験者Aがエリアからの離脱に成功。テスト完了。</span>");
-    }
-
-    function restartGame() {
-      document.getElementById('game-overlay').classList.add('hidden');
-      document.getElementById('game-overlay').classList.remove('flex');
-      startGame();
-    }
-
-
-    // --- 2.5D レンダリング（懐中電灯・照明エフェクト付キャンバス） ---
-    function draw() {
-      // 画面全体をクリア
-      ctx.fillStyle = '#080808';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // マップとプレイヤー基準のカメラオフセット計算（プレイヤー中央スクロール）
-      const zoom = Math.min(canvas.width, canvas.height) / 400; // 視認性の良い拡大率
-      const offsetX = canvas.width / 2 - player.x * zoom;
-      const offsetY = canvas.height / 2 - player.y * zoom;
-
-      ctx.save();
-      ctx.translate(offsetX, offsetY);
-      ctx.scale(zoom, zoom);
-
-      // 1. 地面（マス目のうっすらとしたグリッド）
-      ctx.strokeStyle = '#151515';
-      ctx.lineWidth = 1;
-      for (let i = 0; i <= gridCount; i++) {
-        ctx.beginPath();
-        ctx.moveTo(i * cellSize, 0);
-        ctx.lineTo(i * cellSize, mapSize);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(0, i * cellSize);
-        ctx.lineTo(mapSize, i * cellSize);
-        ctx.stroke();
-      }
-
-      // 2. 壁、ロッカー、檻などの描画
-      for (let r = 0; r < gridCount; r++) {
-        for (let c = 0; c < gridCount; c++) {
-          const type = mapGrid[r][c];
-          const x = c * cellSize;
-          const y = r * cellSize;
-
-          if (type === 1) {
-            // 外周・コンクリート壁
-            ctx.fillStyle = '#1e1e24';
-            ctx.fillRect(x, y, cellSize, cellSize);
-            ctx.strokeStyle = '#2d2d35';
-            ctx.strokeRect(x, y, cellSize, cellSize);
-          } else if (type === 2) {
-            // 檻格子
-            ctx.fillStyle = '#0f0f12';
-            ctx.fillRect(x, y, cellSize, cellSize);
-            ctx.strokeStyle = '#4a5568';
-            ctx.lineWidth = 2;
-            for (let k = 1; k < 5; k++) {
-              ctx.beginPath();
-              ctx.moveTo(x + (cellSize/5)*k, y);
-              ctx.lineTo(x + (cellSize/5)*k, y + cellSize);
-              ctx.stroke();
-            }
-          } else if (type === 3) {
-            // ロッカー（隠れ場所）
-            ctx.fillStyle = '#334155';
-            ctx.fillRect(x + 8, y + 4, cellSize - 16, cellSize - 8);
-            ctx.strokeStyle = '#64748b';
-            ctx.lineWidth = 1.5;
-            ctx.strokeRect(x + 8, y + 4, cellSize - 16, cellSize - 8);
+        <!-- キッチン画面 -->
+        <div id="tab-kitchen" class="space-y-6">
             
-            // ロッカーのスリット
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(x + 14, y + 12, cellSize - 28, 4);
-            ctx.fillRect(x + 14, y + 24, cellSize - 28, 4);
-          } else if (type === 5) {
-            // 非常脱出ゲート
-            if (keysCollected === totalKeys) {
-              ctx.fillStyle = '#10b981'; // 開放された緑
-            } else {
-              ctx.fillStyle = '#b91c1c'; // 閉鎖された赤
+            <!-- バケモノシェフの挨拶 -->
+            <div class="bg-gradient-to-r from-purple-950/40 to-black border border-purple-900/40 rounded-2xl p-5 flex items-center gap-4 shadow-xl">
+                <div class="hidden md:block text-5xl slime-ui">👁️‍🗨️</div>
+                <div class="space-y-1">
+                    <h2 class="text-base md:text-lg font-bold text-yellow-400 flex items-center gap-2">
+                        「ゲココ…！怪しい食材たちを好きに混ぜ合わせるのだ！」
+                    </h2>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        当店のバケモノ顧客はとても気まぐれ。食材は <strong class="text-lime-400">2個から最大10個まで</strong> 自由な組み合わせで放り込んでくれ。
+                        食材が少なければシンプルに、多ければ多いほど大混乱（カオス）で破壊的な怪獣ディッシュが誕生するぞ！
+                    </p>
+                </div>
+            </div>
+
+            <!-- ステータスバー（投入中の状況） -->
+            <div class="bg-purple-950/30 border border-purple-900/40 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs bg-purple-900 px-2.5 py-1 rounded text-purple-300 font-bold border border-purple-700">投入食材</span>
+                    <span id="ingredient-counter" class="text-xl font-mono text-yellow-400 font-bold">0 / 10 個</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-gray-400" id="selected-summary">
+                    食材が空っぽだ。バケモノが空腹で睨んでいるぞ…
+                </div>
+                <button onclick="clearSelection()" class="text-xs text-red-400 hover:text-red-300 transition flex items-center gap-1 border border-red-950 bg-red-950/20 px-3 py-1.5 rounded-lg">
+                    <i class="fa-solid fa-trash-can"></i> すべて取り出す
+                </button>
+            </div>
+
+            <!-- 選択中の食材タグコンテナ -->
+            <div class="bg-black/30 border border-purple-950 p-3 rounded-xl flex flex-wrap gap-2 justify-center" id="selected-tags-container">
+                <span class="text-gray-500 text-xs italic">選択された食材がここに並びます（2〜10個選択可能）</span>
+            </div>
+
+            <!-- メイングリッド（2カラム構成） -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                <!-- 左側：バケモノ食材棚 (7カラム) -->
+                <div class="lg:col-span-7 bg-black/40 border border-purple-900/50 rounded-2xl p-5 space-y-4 shadow-2xl">
+                    <div class="flex justify-between items-center border-b border-purple-950 pb-3">
+                        <h3 class="text-sm font-bold text-purple-300 flex items-center gap-2">
+                            <i class="fa-solid fa-warehouse text-lime-400"></i> 魔界食材セラー
+                        </h3>
+                        <span class="text-[10px] text-gray-500">※お好きな食材を2〜10個タップ！</span>
+                    </div>
+
+                    <!-- フィルタータブ -->
+                    <div class="flex gap-2 overflow-x-auto pb-1">
+                        <button onclick="filterIngredients('all')" class="ing-filter-btn px-3 py-1.5 text-[11px] rounded bg-purple-900 text-lime-300 font-bold" id="filter-all">すべて</button>
+                        <button onclick="filterIngredients('gourmet')" class="ing-filter-btn px-3 py-1.5 text-[11px] rounded bg-purple-950 text-gray-400" id="filter-gourmet">怪しい極上食材</button>
+                        <button onclick="filterIngredients('beast')" class="ing-filter-btn px-3 py-1.5 text-[11px] rounded bg-purple-950 text-gray-400" id="filter-beast">バケモノの部位</button>
+                        <button onclick="filterIngredients('hazard')" class="ing-filter-btn px-3 py-1.5 text-[11px] rounded bg-purple-950 text-gray-400" id="filter-hazard">危険・禁忌物</button>
+                    </div>
+
+                    <!-- 食材リスト -->
+                    <div id="ingredients-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <!-- JSで動的に構築 -->
+                    </div>
+                </div>
+
+                <!-- 右側：大釜オーブン＆錬成魔方陣 (5カラム) -->
+                <div class="lg:col-span-5 flex flex-col items-center">
+                    
+                    <!-- 錬成窯 -->
+                    <div class="relative w-full aspect-square max-w-[340px] bg-gradient-to-b from-purple-950/20 to-black border-2 border-purple-800/40 rounded-3xl p-6 flex flex-col justify-between items-center overflow-hidden shadow-2xl">
+                        
+                        <!-- 妖しい魔力サークル背景 -->
+                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.08)_0%,transparent_70%)]"></div>
+
+                        <div class="text-center z-10 w-full">
+                            <span class="text-[10px] text-lime-400 uppercase tracking-widest font-mono">Monster Alchemic Oven</span>
+                            <h4 class="text-xs font-bold text-purple-300">骸骨印の暗黒オーブン釜</h4>
+                        </div>
+
+                        <!-- 釜のビジュアル -->
+                        <div class="relative my-4 w-40 h-40 flex items-center justify-center">
+                            <!-- 妖気ガス -->
+                            <div class="absolute gas-bubble bottom-16 left-8 w-6 h-6 rounded-full bg-purple-500/30 blur-[2px]"></div>
+                            <div class="absolute gas-bubble bottom-12 left-20 w-8 h-8 rounded-full bg-lime-400/20 blur-[3px]" style="animation-delay: 0.8s;"></div>
+                            <div class="absolute gas-bubble bottom-20 left-28 w-5 h-5 rounded-full bg-indigo-500/25 blur-[1px]" style="animation-delay: 1.5s;"></div>
+
+                            <!-- 釜SVG -->
+                            <svg id="oven-svg" class="w-36 h-36 drop-shadow-[0_0_20px_rgba(132,204,22,0.2)] transition-all duration-300" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <!-- 外釜 -->
+                                <path d="M15 35 C15 15, 85 15, 85 35 C85 65, 75 85, 50 85 C25 85, 15 65, 15 35 Z" fill="#1e152a" stroke="#4c1d95" stroke-width="3"/>
+                                <!-- 釜の覗き窓（炎／ドロドロ液） -->
+                                <circle cx="50" cy="50" r="18" fill="#0f0a15" stroke="#84cc16" stroke-width="2"/>
+                                <circle id="oven-fire" cx="50" cy="50" r="14" fill="#a855f7" class="transition-colors duration-500"/>
+                                <!-- 骸骨マーク -->
+                                <rect x="46" y="24" width="8" height="8" rx="2" fill="#e2e8f0"/>
+                                <circle cx="48" cy="27" r="1" fill="#000"/>
+                                <circle cx="52" cy="27" r="1" fill="#000"/>
+                                <line x1="49" y1="30" x2="49" y2="32" stroke="#000" stroke-width="0.8"/>
+                                <line x1="51" y1="30" x2="51" y2="32" stroke="#000" stroke-width="0.8"/>
+                                <!-- 釜のツノ -->
+                                <path d="M10 25 Q 5 10, 18 18" stroke="#4c1d95" stroke-width="3" stroke-linecap="round" fill="none"/>
+                                <path d="M90 25 Q 95 10, 82 18" stroke="#4c1d95" stroke-width="3" stroke-linecap="round" fill="none"/>
+                            </svg>
+                        </div>
+
+                        <!-- ゲージと調理メッセージ -->
+                        <div class="w-full z-10 space-y-2">
+                            <div id="cooking-progress-bar" class="w-full bg-black/60 h-2.5 rounded-full overflow-hidden hidden border border-purple-950">
+                                <div id="progress-fill" class="bg-gradient-to-r from-purple-600 via-lime-400 to-yellow-400 h-full w-0 transition-all duration-150"></div>
+                            </div>
+                            <div id="cooking-status-text" class="text-center text-[11px] text-lime-400 font-semibold italic min-h-[1.25rem]">
+                                食材を2〜10個選んでくれ。たくさん入れると大混沌だ！
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- スタートボタン -->
+                    <button id="cook-btn" onclick="startMonsterCooking()" disabled
+                        class="mt-4 w-full max-w-[340px] py-4 rounded-xl font-bold text-md tracking-wider transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed bg-gradient-to-r from-purple-800 to-lime-600 text-white hover:brightness-110 shadow-[0_4px_15px_rgba(168,85,247,0.3)] transform hover:-translate-y-0.5 active:translate-y-0 disabled:transform-none">
+                        <i class="fa-solid fa-skull-crossbones mr-2 text-yellow-300 animate-bounce"></i>バケモノ料理を大錬成！
+                    </button>
+                </div>
+            </div>
+
+            <!-- 結果表示エリア -->
+            <div id="result-section" class="hidden bg-gradient-to-b from-purple-950/70 to-black border-2 border-lime-500/50 rounded-2xl p-6 md:p-8 max-w-3xl mx-auto shadow-[0_0_30px_rgba(132,204,22,0.1)] relative">
+                
+                <div class="text-center mb-6">
+                    <span id="result-badge" class="text-[10px] font-bold text-lime-400 tracking-widest bg-lime-950/80 px-3 py-1 rounded-full border border-lime-500/30">【10個大盛り】カオス度MAX</span>
+                    <h3 id="result-title" class="text-2xl md:text-3xl font-bold text-yellow-300 mt-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">千の目を持つ闇シチュー</h3>
+                    <div id="result-stars" class="flex justify-center gap-1 text-purple-400 text-lg mt-2">
+                        <!-- レア度マーク -->
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <!-- 左：ビジュアル -->
+                    <div class="flex flex-col items-center">
+                        <div class="relative w-full aspect-square max-w-[280px] bg-black/60 rounded-2xl border border-purple-900/60 p-4 flex items-center justify-center overflow-hidden shadow-inner">
+                            <!-- 料理SVG表示 -->
+                            <div id="dish-svg-container" class="w-full h-full flex items-center justify-center"></div>
+                            <!-- AI画像生成表示 -->
+                            <div id="ai-image-container" class="absolute inset-0 bg-cover bg-center hidden flex items-center justify-center bg-black">
+                                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-lime-400"></div>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-gray-500 mt-2 italic">※異形グルメ写真機が撮影した完成図</p>
+                    </div>
+
+                    <!-- 右：解説とステータス -->
+                    <div class="space-y-4">
+                        <div class="bg-purple-950/30 p-4 rounded-xl space-y-2 border border-purple-900/30">
+                            <div class="flex justify-between items-center text-xs border-b border-purple-900/20 pb-1.5">
+                                <span class="text-gray-400">料理分類：</span>
+                                <span id="result-type" class="font-bold text-purple-400">深淵カオスフード</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs border-b border-purple-900/20 pb-1.5">
+                                <span class="text-gray-400">販売単価：</span>
+                                <span id="result-price" class="font-bold text-yellow-400">6,666 魔貨 G</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs border-b border-purple-900/20 pb-1.5">
+                                <span class="text-gray-400">バケモノへの効能：</span>
+                                <span id="result-effect" class="font-bold text-lime-400">精神崩壊耐性+100</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-gray-400">満足するバケモノ：</span>
+                                <span id="result-customer" class="font-bold text-yellow-200">死霊騎士、堕天使</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-bold text-lime-400 uppercase tracking-wider mb-1">〜 冥界美食レポート 〜</h4>
+                            <p id="result-desc" class="text-xs leading-relaxed text-gray-300">
+                                おびたただしい量の食材たちが限界突破して煮込まれた結果、お互いの形を保ったまま意思を持ったかのように輝くスープ。客の亡霊たちもよだれを垂らしている。
+                            </p>
+                        </div>
+
+                        <!-- 操作ボタン -->
+                        <div class="pt-2 space-y-2">
+                            <!-- AI実写化ボタン -->
+                            <button id="ai-gen-btn" onclick="generateDishImage()" class="w-full bg-purple-900 hover:bg-purple-800 text-white font-semibold py-2.5 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2 border border-purple-700">
+                                <i class="fa-solid fa-wand-magic-sparkles text-lime-400"></i> AIでこの怪獣料理を実写化する
+                            </button>
+                            <div class="flex gap-2">
+                                <button onclick="resetKitchen()" class="flex-1 bg-neutral-900 hover:bg-neutral-800 text-gray-200 font-semibold py-2 px-3 rounded-xl transition text-xs border border-purple-950">
+                                    次の注文へ
+                                </button>
+                                <button onclick="shareDish()" class="flex-1 bg-lime-700 hover:bg-lime-600 text-black font-bold py-2 px-3 rounded-xl transition text-xs flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-share-nodes"></i> メニューを宣伝
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 闇図鑑画面 -->
+        <div id="tab-collection" class="hidden space-y-6">
+            <div class="bg-black/40 border border-purple-900/50 rounded-2xl p-6 shadow-2xl">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-lime-400">バケモノ常連への献立大図鑑</h2>
+                        <p class="text-xs text-gray-400 mt-1">常連バケモノたちを唸らせた、闇のメニューたちをコンプリートしよう。</p>
+                    </div>
+                    <div class="bg-purple-950/60 border border-purple-800 rounded-xl px-4 py-2 text-center min-w-[150px]">
+                        <span class="text-[10px] text-gray-400">闇コレクト率</span>
+                        <div class="font-bold text-base text-yellow-300" id="collection-ratio">0 / 0 (0%)</div>
+                    </div>
+                </div>
+
+                <!-- 図鑑カードグリッド -->
+                <div id="collection-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <!-- JSで図鑑が構築されます -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- コピー成功トースト通知 -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-purple-950 text-white px-4 py-3 rounded-xl shadow-[0_0_15px_rgba(168,85,247,0.3)] border border-lime-500/30 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-2 z-50">
+        <i class="fa-solid fa-ghost text-lime-400"></i>
+        <span id="toast-text" class="text-xs">厨房の記録を保存した！</span>
+    </div>
+
+    <!-- フッター -->
+    <footer class="bg-black border-t border-purple-950/80 p-6 text-center text-[10px] text-purple-400/60">
+        <p>© 2026 Monster Bistro Geist. 常連バケモノたちの胃袋は無限大。</p>
+    </footer>
+
+    <!-- ゲームロジック用スクリプト -->
+    <script>
+        // --- API KEY & GLOBALS ---
+        const apiKey = ""; // Canvasで自動注入されるため空のまま
+        let activeTab = 'kitchen';
+        let currentFilter = 'all';
+
+        // --- 魔界食材データベース（全18種類） ---
+        const INGREDIENTS = [
+            // 怪しい極上食材 (gourmet)
+            { id: 'phantom_steak', name: 'ファントムの極上生肉', type: 'gourmet', emoji: '🥩', score: 10, desc: '一口食べれば幽体離脱するほど口溶けのよい亡霊獣のヒレ肉。' },
+            { id: 'demon_caviar', name: '悪魔の漆黒キャビア', type: 'gourmet', emoji: '⚫', score: 8, desc: '一粒一粒が深淵の怨念を含んだ、非常に高価な魔界の海の幸。' },
+            { id: 'gold_apple', name: '冥界の黄金リンゴ', type: 'gourmet', emoji: '🍎', score: 9, desc: '食べると若返る（ただしバケモノになる）という黄金色の魔果。' },
+            { id: 'giga_truffle', name: 'ギガ魔導トリュフ', type: 'gourmet', emoji: '🍄', score: 10, desc: '地中深くで何百年もの魔力を吸い込んで巨大化した、香り高き悪魔のキノコ。' },
+            { id: 'dragon_egg', name: '飛竜の紅蓮卵', type: 'gourmet', emoji: '🥚', score: 7, desc: '常に熱を帯びており、油を引かなくてもフライパンで勝手に焼ける卵。' },
+            { id: 'vampire_wine', name: '吸血貴族の秘蔵ワイン', type: 'gourmet', emoji: '🍷', score: 8, desc: '500年以上地下墓地で熟成された、血のように濃密で芳醇なワイン。' },
+
+            // バケモノの部位 (beast)
+            { id: 'kraken_arm', name: 'クラーケンの這う吸盤', type: 'beast', emoji: '🐙', score: 4, desc: 'まだ生きてうねうねと動く。料理に吸着力とコリコリした食感を与える。' },
+            { id: 'eye_cherry', name: '百目コウモリの生目玉', type: 'beast', emoji: '👁️', score: 3, desc: '調理中もじっとこちらを観察している。スープに入れると目が合うぞ。' },
+            { id: 'dragon_tail', name: 'ワイバーンの冷凍尻尾', type: 'beast', emoji: '🐊', score: 5, desc: 'コラーゲンが爆発的に豊富だが、トゲを抜く作業を誤ると指を失う。' },
+            { id: 'goblin_potato', name: 'ゴブリンのすり潰し芋', type: 'beast', emoji: '🥔', score: 2, desc: '泥まみれで育った強烈な土臭さがあるが、バケモノにはこの泥臭さがたまらない。' },
+            { id: 'harpy_wing', name: '怪鳥ハーピーの手羽先', type: 'beast', emoji: '🍗', score: 4, desc: '食べると一瞬だけ重力が軽くなる奇妙な肉。かなり硬い。' },
+            { id: 'basilisk_liver', name: 'バジリスクの石化肝臓', type: 'beast', emoji: '🥓', score: 1, desc: '生のまま食べると歯が石化する。完全に火を通すことで深いコクに変わる。' },
+
+            // 危険・禁忌物 (hazard)
+            { id: 'slime_jelly', name: 'アシッドスライムの粘液', type: 'hazard', emoji: '🧪', score: -5, desc: '衣服を溶かす性質を持つ強酸性のゼリー。隠し味に酸味を加える。' },
+            { id: 'mandrake', name: '絶叫マンドラゴラ根', type: 'hazard', emoji: '🌱', score: -4, desc: '抜いた瞬間だけでなく、スライスされる瞬間も「ギャッ」と叫ぶ草。' },
+            { id: 'death_scorpion', name: '冥府サソリの尾針', type: 'hazard', emoji: '🦂', score: -7, desc: '料理を一瞬で暗黒色に塗りつぶす猛毒成分を含む。微量なら最高のスパイス。' },
+            { id: 'hell_pepper', name: '焦熱ヘルペッパー', type: 'hazard', emoji: '🌶️', score: -3, desc: '地獄の業火で焙られた、一粒で口の中が文字通り燃えあがる超絶スパイス。' },
+            { id: 'soul_candy', name: '迷えるドクロの魂魄', type: 'hazard', emoji: '💀', score: -8, desc: '青白く揺らめくエネルギー。料理に入れるとフワフワと浮きあがるようになる。' },
+            { id: 'curse_crystal', name: '禁断の呪詛結晶', type: 'hazard', emoji: '💎', score: -10, desc: '近づくだけで不吉な予感がする黒い鉱石。削って調味料として使う。' }
+        ];
+
+        // 選択された食材のID（2〜10個）
+        let selectedIngredients = [];
+
+        // 一度でも作ったことのあるレシピIDの保存（ローカル保存代わりのメモリ）
+        let unlockedRecipes = new Set();
+
+        // --- 判定ロジック用プリセット料理パターン ---
+        const MONSTER_RECIPES = [
+            {
+                id: 'royal_beast_steak',
+                name: '極上ファントムの紅蓮ドラゴンステーキ',
+                stars: 5,
+                type: '超特上バケモノディッシュ',
+                price: '85,000 魔貨 G',
+                effect: 'ドラゴンブレス習得（10分間火吹き可能）',
+                customer: '魔王様、ドラゴニュート',
+                desc: '亡霊の生肉とドラゴンの尻尾、紅蓮卵をオーブンで豪快に焼き上げたメインディッシュ。一口かじるだけで血が湧き上がり、凄まじい魔力が身体から迸る。',
+                check: (ids) => ids.includes('phantom_steak') && ids.includes('dragon_tail') && ids.includes('dragon_egg'),
+                svgType: 'luxury_meat',
+                svgColor: '#ef4444'
+            },
+            {
+                id: 'abyss_eye_stew',
+                name: '深淵の百目クラーケンポタージュ',
+                stars: 4,
+                type: '常連絶賛グロ旨スープ',
+                price: '28,000 魔貨 G',
+                effect: '暗視能力＋千里眼（怪しい眼差し）',
+                customer: '死霊術師、スケルトンキング',
+                desc: 'クラーケンの触手と無数の生目玉を酸性スライム液でじっくり煮立てた、とろりと妖しく光るスープ。スープの中から見つめ返されるスリルがたまらない。',
+                check: (ids) => ids.includes('kraken_arm') && ids.includes('eye_cherry') && ids.includes('slime_jelly'),
+                svgType: 'eye_soup',
+                svgColor: '#a855f7'
+            },
+            {
+                id: 'god_disaster_hotpot',
+                name: '禁忌・大魔境災厄大鍋（カタストロフ）',
+                stars: 5,
+                type: '世界滅亡級カオス料理',
+                price: '99,999 魔貨 G',
+                effect: '周囲の重力を狂わせ、誰も逆らえなくなる',
+                customer: '奈落の巨人、魔術創世神',
+                desc: '冥界リンゴ、ドクロ魂、絶叫マンドラゴラ、サソリ針、そして呪詛結晶を限界まで煮込んだ禁忌中の禁忌。釜そのものが邪悪なエネルギーで震えている。',
+                check: (ids) => ids.includes('curse_crystal') && ids.includes('soul_candy') && ids.includes('mandrake'),
+                svgType: 'calamity_pot',
+                svgColor: '#10b981'
+            },
+            {
+                id: 'fire_hell_grill',
+                name: '超辛焦熱ヘルファイヤチキン',
+                stars: 3,
+                type: '激辛バケモノおつまみ',
+                price: '12,000 魔貨 G',
+                effect: '一時的に火属性攻撃1.5倍（お尻が死にます）',
+                customer: 'イフリート、サラマンダー',
+                desc: 'ハーピーの手羽先に、焦熱ヘルペッパーをこれでもかと擦り込んだ一品。一口食べた瞬間に炎を吹くほどの強烈なスパイス。',
+                check: (ids) => ids.includes('harpy_wing') && ids.includes('hell_pepper'),
+                svgType: 'spicy_chicken',
+                svgColor: '#ea580c'
+            },
+            {
+                id: 'ghost_sweet_dessert',
+                name: '冥府のふわふわゴーストマカロン',
+                stars: 4,
+                type: '麗しき死のデザート',
+                price: '18,500 魔貨 G',
+                effect: '半霊体化（3分間だけ壁をすり抜けられる）',
+                customer: '吸血鬼の姫君、ラミア',
+                desc: '吸血貴族のワインとドクロの魂、冥界リンゴをジュレにし、フワフワに冷やし固めた。甘美にして退廃的、お忍びの姫君に大人気の映えマカロン。',
+                check: (ids) => ids.includes('vampire_wine') && ids.includes('soul_candy') && ids.includes('gold_apple'),
+                svgType: 'ghost_dessert',
+                svgColor: '#ec4899'
+            },
+            {
+                id: 'goblin_bizarre_mash',
+                name: 'どぶろく泥芋クラーケン和え',
+                stars: 2,
+                type: '大衆酒場ゲテモノ',
+                price: '1,500 魔貨 G',
+                effect: '腕力が一時的にアップ（ただしIQは著しく低下する）',
+                customer: 'オーク、ゴブリン、オーガ',
+                desc: 'ゴブリンの泥芋とクラーケンの足を、適当に潰して混ぜ合わせた怪作。見た目は最悪だが、噛めば噛むほど独特のウマミが広がり、濁酒がグイグイ進む。',
+                check: (ids) => ids.includes('goblin_potato') && ids.includes('kraken_arm'),
+                svgType: 'mud_mash',
+                svgColor: '#78350f'
             }
-            ctx.fillRect(x, y, cellSize, cellSize);
-            ctx.strokeStyle = '#34d399';
-            ctx.strokeRect(x, y, cellSize, cellSize);
-          }
+        ];
+
+        // --- 初期化処理 ---
+        window.onload = function() {
+            renderIngredients();
+            updateSelectedUi();
+            setupCollection();
+        };
+
+        // --- 食材表示レンダリング ---
+        function renderIngredients() {
+            const grid = document.getElementById('ingredients-grid');
+            grid.innerHTML = '';
+
+            const filtered = INGREDIENTS.filter(item => {
+                if (currentFilter === 'all') return true;
+                return item.type === currentFilter;
+            });
+
+            filtered.forEach(item => {
+                const isSelected = selectedIngredients.includes(item.id);
+                // 最大10個まで選択可能
+                const disabled = !isSelected && selectedIngredients.length >= 10;
+
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-xl border transition-all cursor-pointer relative flex flex-col justify-between h-32 select-none
+                    ${isSelected 
+                        ? 'bg-purple-900 border-lime-400 text-white shadow-[0_0_12px_rgba(132,204,22,0.4)] scale-[1.02]' 
+                        : disabled 
+                            ? 'bg-neutral-950 border-neutral-900 text-neutral-700 cursor-not-allowed opacity-40' 
+                            : 'bg-purple-950/20 border-purple-900/40 text-gray-300 hover:bg-purple-900/30 hover:border-purple-800'
+                    }`;
+                
+                if (!disabled) {
+                    card.onclick = () => toggleIngredient(item.id);
+                }
+
+                let badge = '';
+                if (item.type === 'gourmet') badge = '<span class="text-[9px] bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 px-1.5 py-0.5 rounded">極上</span>';
+                if (item.type === 'beast') badge = '<span class="text-[9px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded">部位</span>';
+                if (item.type === 'hazard') badge = '<span class="text-[9px] bg-red-500/10 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded">危険</span>';
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="text-2xl">${item.emoji}</span>
+                        ${badge}
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xs truncate mt-2 text-yellow-100">${item.name}</h4>
+                        <p class="text-[10px] text-gray-400 line-clamp-2 leading-tight mt-1">${item.desc}</p>
+                    </div>
+                    ${isSelected ? `
+                    <div class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-lime-400 rounded-full flex items-center justify-center text-black text-xs font-bold">
+                        ✓
+                    </div>` : ''}
+                `;
+                grid.appendChild(card);
+            });
         }
-      }
 
-      // 3. 鍵アイテムの描画
-      keys.forEach(k => {
-        if (!k.collected) {
-          ctx.save();
-          ctx.translate(k.x, k.y);
-          // 回転・明滅アニメーション
-          const wave = Math.sin(Date.now() * 0.005) * 2;
-          
-          ctx.fillStyle = '#fbbf24';
-          ctx.strokeStyle = '#d97706';
-          ctx.lineWidth = 1.5;
+        // 食材フィルター
+        function filterIngredients(type) {
+            currentFilter = type;
+            const btns = document.querySelectorAll('.ing-filter-btn');
+            btns.forEach(btn => {
+                btn.classList.remove('bg-purple-900', 'text-lime-300');
+                btn.classList.add('bg-purple-950', 'text-gray-400');
+            });
+            
+            // 押されたボタンのアクティブ表示
+            const activeId = `filter-${type}`;
+            const activeBtn = document.getElementById(activeId);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-purple-950', 'text-gray-400');
+                activeBtn.classList.add('bg-purple-900', 'text-lime-300');
+            }
 
-          // 鍵のリング部
-          ctx.beginPath();
-          ctx.arc(0, wave, 6, 0, Math.PI * 2);
-          ctx.stroke();
-          
-          // 鍵の先端部
-          ctx.fillRect(-2, wave + 6, 4, 12);
-          ctx.fillRect(2, wave + 12, 5, 3);
-          ctx.fillRect(2, wave + 15, 5, 3);
-          
-          // 光彩エフェクト
-          ctx.shadowColor = '#fbbf24';
-          ctx.shadowBlur = 15;
-          ctx.beginPath();
-          ctx.arc(0, wave, 3, 0, Math.PI * 2);
-          ctx.fill();
-          
-          ctx.restore();
+            renderIngredients();
         }
-      });
 
-      // 4. モンスター達の描画
-      monsters.forEach(m => {
-        ctx.save();
-        ctx.translate(m.x, m.y);
-        ctx.rotate(m.angle);
-
-        // 異形特有の影
-        ctx.shadowColor = m.color;
-        ctx.shadowBlur = (m.state === 'chase') ? 20 : 8;
-
-        // モンスターコア
-        ctx.fillStyle = m.color;
-        ctx.beginPath();
-        ctx.arc(0, 0, m.radius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // 牙・突起
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.moveTo(m.radius, -5);
-        ctx.lineTo(m.radius + 8, 0);
-        ctx.lineTo(m.radius, 5);
-        ctx.fill();
-
-        // 視界（怪しい赤い光のコーン）
-        ctx.restore();
-        
-        // 巡回ルート（CCTVでのみ確認できる不穏なルート線として点線で薄く描画）
-        if (currentCameraId !== null) {
-          ctx.strokeStyle = `${m.color}15`;
-          ctx.setLineDash([5, 5]);
-          ctx.beginPath();
-          m.waypoints.forEach((w, i) => {
-            if (i === 0) ctx.moveTo(w.x, w.y);
-            else ctx.lineTo(w.x, w.y);
-          });
-          ctx.closePath();
-          ctx.stroke();
-          ctx.setLineDash([]);
+        // 食材の選択/解除
+        function toggleIngredient(id) {
+            const index = selectedIngredients.indexOf(id);
+            if (index > -1) {
+                selectedIngredients.splice(index, 1);
+            } else {
+                if (selectedIngredients.length < 10) {
+                    selectedIngredients.push(id);
+                }
+            }
+            renderIngredients();
+            updateSelectedUi();
         }
-      });
 
-      // 5. プレイヤーの描画
-      ctx.save();
-      ctx.translate(player.x, player.y);
-      ctx.rotate(player.angle);
-
-      if (isHiding) {
-        // 隠れているときはうっすら半透明
-        ctx.globalAlpha = 0.4;
-      }
-
-      // プレイヤーベース
-      ctx.fillStyle = '#0ea5e9';
-      ctx.shadowColor = '#0ea5e9';
-      ctx.shadowBlur = isSprinting ? 12 : 4;
-      ctx.beginPath();
-      ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 向いている方向を示すライト（懐中電灯の発光点）
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(player.radius - 2, 0, 4, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.restore();
-
-      // 6. 懐中電灯・暗闇エフェクトの重ね合わせ（プレイヤーを起点とした視野外の超暗転処理）
-      ctx.restore(); // 元のキャンバススケール（Translateなし）に戻す
-
-      // スクリーンサイズに合わせた暗闇レイヤー
-      ctx.save();
-      const pCanvasX = player.x * zoom + offsetX;
-      const pCanvasY = player.y * zoom + offsetY;
-
-      // 段階的な光グラデーション（懐中電灯）
-      const grad = ctx.createRadialGradient(
-        pCanvasX, pCanvasY, 15 * zoom, // 内円
-        pCanvasX, pCanvasY, (isHiding ? 40 : 150) * zoom // 外円（隠れているときは視野が狭くなる）
-      );
-
-      grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      grad.addColorStop(0.3, 'rgba(0, 0, 0, 0.2)');
-      grad.addColorStop(0.7, 'rgba(0, 0, 0, 0.75)');
-      grad.addColorStop(1, 'rgba(0, 0, 0, 0.98)');
-
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.restore();
-
-      // 7. 防犯カメラ(CCTV)エリアへのマッププロット反映
-      drawCCTVRadar();
-    }
-
-    // カメラ視野内の敵位置などを、右側のセキュリティモニターに簡易プロット
-    function drawCCTVRadar() {
-      // 監視カメラモニターの映像エフェクトをリアルタイムに歪ませる処理
-      const cam = cameras[currentCameraId];
-      if (!cam) return;
-
-      // カメラからプレイヤーへの距離、モンスターへの距離
-      const distToPlayer = Math.hypot(player.x - cam.x, player.y - cam.y);
-      let alertDetected = false;
-
-      // モンスターがカメラ範囲内にいるか？
-      monsters.forEach(m => {
-        const distToMonster = Math.hypot(m.x - cam.x, m.y - cam.y);
-        if (distToMonster < cam.range) {
-          alertDetected = true;
+        // 選択を全クリア
+        function clearSelection() {
+            selectedIngredients = [];
+            renderIngredients();
+            updateSelectedUi();
         }
-      });
 
-      const label = document.getElementById('cctv-status');
-      if (alertDetected) {
-        label.textContent = "ENTITY DETECTED";
-        label.className = "absolute bottom-2 right-2 text-[9px] text-red-500 font-bold danger-pulse";
-      } else {
-        label.textContent = "SIGNAL CLEAR";
-        label.className = "absolute bottom-2 right-2 text-[9px] text-emerald-500 font-bold";
-      }
-    }
-  </script>
+        // 選択UIの更新（大釜とステータスの同期）
+        function updateSelectedUi() {
+            const counter = document.getElementById('ingredient-counter');
+            const summary = document.getElementById('selected-summary');
+            const container = document.getElementById('selected-tags-container');
+            const cookBtn = document.getElementById('cook-btn');
+            const fire = document.getElementById('oven-fire');
+
+            counter.innerText = `${selectedIngredients.length} / 10 個`;
+
+            if (selectedIngredients.length === 0) {
+                summary.innerText = "食材が空っぽだ。バケモノが空腹で睨んでいるぞ…";
+                container.innerHTML = `<span class="text-gray-500 text-xs italic">選択された食材がここに並びます（2〜10個選択可能）</span>`;
+                cookBtn.disabled = true;
+                fire.setAttribute('fill', '#a855f7'); // 通常：妖気紫
+                return;
+            }
+
+            // タグの生成
+            container.innerHTML = '';
+            selectedIngredients.forEach(id => {
+                const item = INGREDIENTS.find(i => i.id === id);
+                if (item) {
+                    const badge = document.createElement('span');
+                    badge.className = `px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 bg-purple-900 border border-purple-700 text-purple-200`;
+                    badge.innerHTML = `${item.emoji} ${item.name} <button onclick="toggleIngredient('${item.id}'); event.stopPropagation();" class="text-red-400 hover:text-red-300 ml-1 font-bold">×</button>`;
+                    container.appendChild(badge);
+                }
+            });
+
+            const items = selectedIngredients.map(id => INGREDIENTS.find(i => i.id === id)).filter(Boolean);
+            const gourmets = items.filter(i => i.type === 'gourmet').length;
+            const beasts = items.filter(i => i.type === 'beast').length;
+            const hazards = items.filter(i => i.type === 'hazard').length;
+
+            summary.innerHTML = `<span class="text-lime-400">極上:${gourmets} / 部位:${beasts} / 危険:${hazards}</span>`;
+
+            // 最低2個から調理開始可能
+            if (selectedIngredients.length < 2) {
+                const remaining = 2 - selectedIngredients.length;
+                const info = document.createElement('span');
+                info.className = "text-purple-400 text-xs self-center ml-2 italic";
+                info.innerText = `（あと ${remaining} 個以上選んで！）`;
+                container.appendChild(info);
+                cookBtn.disabled = true;
+                fire.setAttribute('fill', '#a855f7'); 
+            } else {
+                cookBtn.disabled = false;
+                
+                // 割合や個数でオーブンの炎の色が怪しく変化する
+                if (hazards > gourmets && hazards > beasts) {
+                    fire.setAttribute('fill', '#10b981'); // 危険性優位：毒の緑火
+                } else if (gourmets > beasts && gourmets > hazards) {
+                    fire.setAttribute('fill', '#eab308'); // 極上優位：黄金に輝く火
+                } else if (selectedIngredients.length >= 8) {
+                    fire.setAttribute('fill', '#ef4444'); // 10個近く超大盛り：暴走の真っ赤な火
+                } else {
+                    fire.setAttribute('fill', '#a855f7'); // 通常
+                }
+            }
+        }
+
+        // 選択された食材のトータルスコア算出
+        function calculateTotalScore() {
+            return selectedIngredients.reduce((acc, id) => {
+                const item = INGREDIENTS.find(i => i.id === id);
+                return acc + (item ? item.score : 0);
+            }, 0);
+        }
+
+        // --- タブ切り替え ---
+        function switchTab(tab) {
+            activeTab = tab;
+            const tabKitchen = document.getElementById('tab-kitchen');
+            const tabCollection = document.getElementById('tab-collection');
+            const btnKitchen = document.getElementById('btn-kitchen');
+            const btnCollection = document.getElementById('btn-collection');
+
+            if (tab === 'kitchen') {
+                tabKitchen.classList.remove('hidden');
+                tabCollection.classList.add('hidden');
+                btnKitchen.className = "px-4 py-2 rounded-lg font-bold transition text-xs flex items-center gap-1 bg-lime-500 text-black shadow-[0_0_10px_rgba(132,204,22,0.5)]";
+                btnCollection.className = "px-4 py-2 rounded-lg font-bold transition text-xs flex items-center gap-1 text-purple-300 hover:bg-purple-950/40 border border-purple-800/40";
+            } else {
+                tabKitchen.classList.add('hidden');
+                tabCollection.classList.remove('hidden');
+                btnCollection.className = "px-4 py-2 rounded-lg font-bold transition text-xs flex items-center gap-1 bg-lime-500 text-black shadow-[0_0_10px_rgba(132,204,22,0.5)]";
+                btnKitchen.className = "px-4 py-2 rounded-lg font-bold transition text-xs flex items-center gap-1 text-purple-300 hover:bg-purple-950/40 border border-purple-800/40";
+                renderCollection();
+            }
+        }
+
+        // --- バケモノ料理スタート ---
+        let currentDish = null;
+
+        function startMonsterCooking() {
+            if (selectedIngredients.length < 2 || selectedIngredients.length > 10) return;
+
+            const progress = document.getElementById('cooking-progress-bar');
+            const fill = document.getElementById('progress-fill');
+            const statusText = document.getElementById('cooking-status-text');
+            const cookBtn = document.getElementById('cook-btn');
+            const oven = document.getElementById('oven-svg');
+            const resultSec = document.getElementById('result-section');
+
+            cookBtn.disabled = true;
+            resultSec.classList.add('hidden');
+            progress.classList.remove('hidden');
+            oven.classList.add('oven-shaking');
+
+            // AI生成ビューをクリア
+            document.getElementById('ai-image-container').classList.add('hidden');
+            document.getElementById('ai-image-container').style.backgroundImage = 'none';
+            document.getElementById('ai-gen-btn').disabled = false;
+            document.getElementById('ai-gen-btn').innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-lime-400"></i> AIでこの怪獣料理を実写化する`;
+
+            let count = 0;
+            // 投入個数に応じてメッセージを微変化
+            const ingCount = selectedIngredients.length;
+            const messages = [
+                `食材${ingCount}個を力技でオーブンへ放り込み中...`,
+                "バケモノが今か今かとテーブルを叩いています！",
+                "グツグツゴロゴロ... 魔力のスパイスが衝突中！",
+                "爆発寸前！信じられない異臭と芳香が立ち上っています！",
+                "お皿の上が意思を持ち始めました！間もなく完成！"
+            ];
+
+            const interval = setInterval(() => {
+                count += 5;
+                fill.style.width = count + '%';
+                
+                const msgIdx = Math.floor(count / 21);
+                if (messages[msgIdx]) {
+                    statusText.innerText = messages[msgIdx];
+                }
+
+                if (count >= 100) {
+                    clearInterval(interval);
+                    oven.classList.remove('oven-shaking');
+                    progress.classList.add('hidden');
+                    fill.style.width = '0%';
+                    statusText.innerText = "錬成完了！凄まじいディッシュのお出ましだ！";
+                    
+                    generateDishResult();
+                }
+            }, 120);
+        }
+
+        // 料理生成・判定
+        function generateDishResult() {
+            const selectedIds = [...selectedIngredients];
+            let matchedRecipe = null;
+
+            // 1. レシピの完全一致・または部分一致チェック (必要な食材を含んでいるか)
+            for (let recipe of MONSTER_RECIPES) {
+                if (recipe.check(selectedIds)) {
+                    matchedRecipe = { ...recipe };
+                    break;
+                }
+            }
+
+            // 2. 一致するものがない場合は動的生成（カオス数や投入数に応じた無限自動レシピ）
+            if (!matchedRecipe) {
+                matchedRecipe = createDynamicRecipe(selectedIds);
+            }
+
+            currentDish = matchedRecipe;
+
+            // 図鑑の解放登録
+            unlockedRecipes.add(matchedRecipe.name);
+            updateUnlockedCount();
+
+            // UIへの反映
+            document.getElementById('result-title').innerText = matchedRecipe.name;
+            document.getElementById('result-type').innerText = matchedRecipe.type;
+            document.getElementById('result-price').innerText = matchedRecipe.price;
+            document.getElementById('result-effect').innerText = matchedRecipe.effect;
+            document.getElementById('result-customer').innerText = matchedRecipe.customer || "雑食のコブリン、スライム";
+            document.getElementById('result-desc').innerText = matchedRecipe.desc;
+
+            // バッジの設定（投入個数）
+            const resultBadge = document.getElementById('result-badge');
+            resultBadge.innerText = `【食材 ${selectedIds.length} 個投入】カオス度: ${selectedIds.length >= 8 ? '極限MAX' : selectedIds.length >= 5 ? '中度混乱' : 'シンプル'}`;
+
+            // レア度（ドクロマークまたは星マーク）
+            const starsContainer = document.getElementById('result-stars');
+            starsContainer.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const skull = document.createElement('i');
+                if (i < matchedRecipe.stars) {
+                    skull.className = "fa-solid fa-skull text-lime-400 mx-0.5";
+                } else {
+                    skull.className = "fa-solid fa-skull text-neutral-800 mx-0.5";
+                }
+                starsContainer.appendChild(skull);
+            }
+
+            // 動的SVGのレンダリング
+            renderDishSvg(matchedRecipe);
+
+            // 結果セクション表示
+            const resultSec = document.getElementById('result-section');
+            resultSec.classList.remove('hidden');
+            resultSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            // ボタン有効化
+            document.getElementById('cook-btn').disabled = false;
+        }
+
+        // 2〜10個の食材数に合わせて可変する判定ジェネレーター
+        function createDynamicRecipe(ids) {
+            const score = calculateTotalScore();
+            const items = ids.map(id => INGREDIENTS.find(i => i.id === id)).filter(Boolean);
+            const count = ids.length;
+
+            const gourmets = items.filter(i => i.type === 'gourmet').length;
+            const beasts = items.filter(i => i.type === 'beast').length;
+            const hazards = items.filter(i => i.type === 'hazard').length;
+
+            let name = "";
+            let stars = 3;
+            let type = "魔界料理";
+            let price = "1,000 魔貨 G";
+            let effect = "満腹感";
+            let customer = "下級バケモノ";
+            let desc = "";
+            let svgType = "mess";
+            let svgColor = "#ec4899";
+
+            // A. 超大盛り爆発カオス（8個以上投入時）
+            if (count >= 8) {
+                stars = 5;
+                type = "超大盛り限界突破カオス鍋";
+                price = `${count * 4500} 魔貨 G`;
+                customer = "満腹知らずのベヒモス、暴食鬼";
+                effect = "胃袋キャパシティが一時的に無限化する";
+                
+                const prefixes = ["超質量型", "千星が砕ける", "冥界崩壊をもたらす", "暴飲暴食の"];
+                const suffixes = ["ブラックホール寄せ鍋", "デス・パーティープレート", "メガトン混沌煮込み"];
+                name = getRandom(prefixes) + getRandom(suffixes);
+                desc = `${count}種類もの多すぎる魔界食材が入り混じり、物理学が敗北したかのような巨大な料理。ひと口食べると自分の存在が溶け出していくような幻覚に襲われる。`;
+                
+                svgType = "calamity_pot";
+                svgColor = "#8b5cf6";
+            }
+            // B. 食材数が少なめ (2-3個) で高級寄り
+            else if (count <= 3 && gourmets >= 2) {
+                stars = 4;
+                type = "洗練された高級バケモノ前菜";
+                price = "32,000 魔貨 G";
+                customer = "吸血鬼の貴族、美貌のサキュバス";
+                effect = "バケモノたちを魅了し、割引交渉を有利にする";
+                name = `冥界の美を放つ${items[0].name}のアペタイザー`;
+                desc = `あえて食材を${count}つに絞り込むことで、${items[0].name}の上品な風味が引き立った美しい仕上がり。美食家の貴族バケモノも思わず微笑む極上品。`;
+                
+                svgType = "ghost_dessert";
+                svgColor = "#facc15";
+            }
+            // C. 危険度が超高い（危険・禁忌物が過半数）
+            else if (hazards > (gourmets + beasts)) {
+                stars = 2;
+                type = "最凶デンジャラスフード";
+                price = "444 魔貨 G";
+                customer = "アンデッド、毒免疫を持つバジリスク";
+                effect = "激しい腹痛、ただし全魔力値が一時的に2倍になる";
+                
+                const dangerPrefix = ["猛毒性の", "致死レベルの", "胃袋が消滅する", "精神崩壊を招く"];
+                const dangerSuffix = ["毒ポタージュ", "デンジャラスパウダー炒め", "アシッドおにぎり"];
+                name = getRandom(dangerPrefix) + getRandom(dangerSuffix);
+                desc = `${items.map(i => i.name).join('と')}の毒性と刺激が、釜の中で奇跡の悪魔的ブレンドを見せた。テーブルからジュージューと不気味な煙が立ち上り、周囲の空間を腐食させている。`;
+                
+                svgType = "eye_soup";
+                svgColor = "#10b981";
+            }
+            // D. バケモノ部位多め
+            else if (beasts > (gourmets + hazards)) {
+                stars = 3;
+                type = "ワイルド・ビーストフード";
+                price = "8,900 魔貨 G";
+                customer = "ウェアウルフ、ケンタウロス";
+                effect = "野獣の勘（敵の急所が丸見えになる）";
+                name = `血気盛んな${items[0].name}のワイルド盛り`;
+                desc = `${items[0].name}をはじめとするバケモノのパーツが、互いの生命力を引き立てあう。噛みごたえがあり、噛むたびに冥界のパワーが口いっぱいに広がる。`;
+                
+                svgType = "spicy_chicken";
+                svgColor = "#ea580c";
+            }
+            // E. その他（一般的な混ぜ合わせ）
+            else {
+                stars = 3;
+                type = "創作魔界ディッシュ";
+                price = "4,500 魔貨 G";
+                customer = "迷い込んだゴブリン、スケルトン";
+                effect = "HPが徐々に自動回復する（バケモノ限定）";
+                name = `気まぐれ厨房の${items[0].name}と${items[1].name}の炒め`;
+                desc = `手近な食材 ${count}種類をパパッとオーブンで焼き上げたバケモノレストラン定番のまかない飯。見た目は奇怪だが、味のバランスは意外にも破綻していない。`;
+                
+                svgType = "mud_mash";
+                svgColor = "#d97706";
+            }
+
+            return {
+                id: 'dynamic_' + Date.now(),
+                name,
+                stars,
+                type,
+                price,
+                effect,
+                customer,
+                desc,
+                svgColor,
+                svgType
+            };
+        }
+
+        function getRandom(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        // --- 動的なSVGグラフィックの描画 ---
+        function renderDishSvg(dish) {
+            const container = document.getElementById('dish-svg-container');
+            let svgContent = '';
+
+            const color = dish.svgColor || '#ec4899';
+
+            // バケモノ料理に特化したダイナミックSVG
+            if (dish.svgType === 'luxury_meat') {
+                svgContent = `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <!-- 豪華な黄金鉄板 -->
+                    <ellipse cx="50" cy="70" rx="44" ry="14" fill="#1e1b4b" stroke="#facc15" stroke-width="2"/>
+                    <ellipse cx="50" cy="68" rx="40" ry="10" fill="#d97706"/>
+                    <!-- 肉の塊 -->
+                    <path d="M22 62 C 22 45, 78 45, 78 62 C 78 68, 22 68, 22 62 Z" fill="#7f1d1d" stroke="#ef4444" stroke-width="2"/>
+                    <!-- 骨 -->
+                    <rect x="12" y="58" width="12" height="6" rx="2" fill="#e2e8f0" transform="rotate(-15 12 58)"/>
+                    <circle cx="10" cy="57" r="4" fill="#e2e8f0"/>
+                    <circle cx="10" cy="63" r="4" fill="#e2e8f0"/>
+                    <!-- 竜の目玉トッピング -->
+                    <circle cx="50" cy="52" r="6" fill="#facc15" stroke="#ca8a04"/>
+                    <circle cx="50" cy="52" r="2" fill="#000"/>
+                    <!-- 炎の揺らめき -->
+                    <path d="M40 45 Q 45 30, 42 20 Q 50 32, 45 45" fill="#f97316" opacity="0.8"/>
+                    <path d="M55 45 Q 60 25, 57 15 Q 65 28, 60 45" fill="#f97316" opacity="0.8"/>
+                    <path d="M48 48 Q 50 35, 49 25 Q 54 35, 52 48" fill="#facc15" opacity="0.9"/>
+                </svg>`;
+            } else if (dish.svgType === 'eye_soup') {
+                svgContent = `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <!-- ドロドロのスープ皿 -->
+                    <path d="M15 45 C 15 75, 85 75, 85 45 Z" fill="#2d1b4e" stroke="#a855f7" stroke-width="2.5"/>
+                    <ellipse cx="50" cy="45" rx="35" ry="10" fill="#1e1b4b"/>
+                    <!-- スープの液体面（緑または紫） -->
+                    <ellipse cx="50" cy="45" rx="32" ry="7" fill="${color}"/>
+                    <!-- 浮遊する百目目玉 -->
+                    <circle cx="38" cy="44" r="5" fill="#fff" stroke="#9d174d"/>
+                    <circle cx="39" cy="44" r="2.2" fill="#2563eb"/>
+                    <circle cx="39" cy="44" r="1" fill="#000"/>
+
+                    <circle cx="52" cy="46" r="6" fill="#fff" stroke="#9d174d"/>
+                    <circle cx="51" cy="46" r="2.5" fill="#16a34a"/>
+                    <circle cx="51" cy="46" r="1" fill="#000"/>
+
+                    <circle cx="64" cy="43" r="4.5" fill="#fff" stroke="#9d174d"/>
+                    <circle cx="64" cy="43" r="1.8" fill="#dc2626"/>
+                    
+                    <!-- 触手の飛び出し -->
+                    <path d="M25 43 Q 18 20, 30 15 Q 28 25, 29 42" fill="#a21caf" stroke="#4a044e" stroke-width="1.5"/>
+                    <!-- 不気味な湯気 -->
+                    <path d="M48 35 Q 52 25, 48 15" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.6"/>
+                </svg>`;
+            } else if (dish.svgType === 'calamity_pot') {
+                svgContent = `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <!-- 災厄の大鍋 -->
+                    <rect x="10" y="50" width="80" height="14" rx="4" fill="#111827" stroke="#374151" stroke-width="2"/>
+                    <path d="M15 62 C 20 88, 80 88, 85 62 Z" fill="#1f2937" stroke="#374151" stroke-width="2"/>
+                    <!-- つのつの装飾 -->
+                    <path d="M8 45 Q 3 20, 18 35" stroke="#374151" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <path d="M92 45 Q 97 20, 82 35" stroke="#374151" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <!-- 泡立つダークマター液体 -->
+                    <ellipse cx="50" cy="50" rx="36" ry="7" fill="#0c0a0f"/>
+                    <!-- 魂の幽霊（どくろ） -->
+                    <path d="M48 42 C 45 30, 55 30, 52 42" fill="#67e8f9" opacity="0.8"/>
+                    <circle cx="49" cy="35" r="1" fill="#000"/>
+                    <circle cx="51" cy="35" r="1" fill="#000"/>
+                    <!-- 巨大気泡 -->
+                    <circle cx="32" cy="48" r="4.5" fill="#84cc16" opacity="0.7"/>
+                    <circle cx="68" cy="49" r="3" fill="#84cc16" opacity="0.6"/>
+                    <!-- 不吉な赤・緑・黄の飛沫 -->
+                    <circle cx="50" cy="49" r="1.5" fill="#facc15"/>
+                    <circle cx="42" cy="50" r="1" fill="#ef4444"/>
+                    <circle cx="58" cy="48" r="2" fill="#c084fc"/>
+                </svg>`;
+            } else if (dish.svgType === 'spicy_chicken') {
+                svgContent = `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <!-- 石板 -->
+                    <polygon points="15,72 85,72 75,55 25,55" fill="#2d3748" stroke="#1a202c" stroke-width="1.5"/>
+                    <!-- 悪魔の手羽先 -->
+                    <path d="M30 65 Q 45 42, 65 60 Q 50 72, 30 65" fill="#991b1b" stroke="#7f1d1d" stroke-width="1.5"/>
+                    <path d="M63 61 L 82 52" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/> <!-- 飛び出た骨 -->
+                    <!-- ヘルペッパーの真っ赤な粉末 -->
+                    <circle cx="40" cy="58" r="1" fill="#ef4444"/>
+                    <circle cx="45" cy="62" r="1.5" fill="#f97316"/>
+                    <circle cx="48" cy="56" r="1" fill="#ef4444"/>
+                    <circle cx="55" cy="63" r="1.2" fill="#ef4444"/>
+                    <!-- キャビアがこんもり -->
+                    <ellipse cx="44" cy="58" rx="6" ry="3" fill="#000" opacity="0.9"/>
+                    <circle cx="42" cy="58" r="1" fill="#374151"/>
+                    <circle cx="46" cy="57" r="1" fill="#374151"/>
+                </svg>`;
+            } else if (dish.svgType === 'ghost_dessert') {
+                svgContent = `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <!-- クリスタルの器 -->
+                    <path d="M25 40 L35 70 L65 70 L75 40 Z" fill="none" stroke="#67e8f9" stroke-width="2" opacity="0.8"/>
+                    <ellipse cx="50" cy="40" rx="25" ry="6" fill="#1e293b" stroke="#67e8f9" stroke-width="1.5" opacity="0.9"/>
+                    <ellipse cx="50" cy="70" rx="15" ry="4" fill="#1e293b" stroke="#67e8f9" stroke-width="1.5" opacity="0.9"/>
+                    <!-- ふわふわゴーストマカロン -->
+                    <rect x="35" y="44" width="30" height="10" rx="5" fill="#f472b6" opacity="0.9"/>
+                    <rect x="35" y="52" width="30" height="10" rx="5" fill="#f472b6" opacity="0.9"/>
+                    <!-- 中の不気味ジュレ -->
+                    <rect x="38" y="50" width="24" height="4" fill="#a855f7"/>
+                    <!-- ドクロ魂のエフェクト -->
+                    <path d="M50 35 Q 48 20, 52 15 Q 56 20, 50 35" fill="#a7f3d0" opacity="0.7"/>
+                </svg>`;
+            } else if (dish.svgType === 'mud_mash') {
+                svgContent = `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <!-- 木製の皿 -->
+                    <ellipse cx="50" cy="68" rx="42" ry="12" fill="#78350f" stroke="#451a03" stroke-width="2"/>
+                    <ellipse cx="50" cy="65" rx="36" ry="8" fill="#92400e"/>
+                    <!-- すり潰し泥芋 -->
+                    <path d="M25 62 C 25 50, 75 50, 75 62 Z" fill="#451a03"/>
+                    <!-- クラーケンの足の和え物（突出） -->
+                    <path d="M45 58 Q 50 32, 58 45" stroke="#ec4899" stroke-width="4" stroke-linecap="round" fill="none"/>
+                    <circle cx="51" cy="40" r="1.5" fill="#fff"/>
+                    <circle cx="53" cy="46" r="1.5" fill="#fff"/>
+                    <!-- 泥のポタポタ -->
+                    <circle cx="34" cy="62" r="2.5" fill="#1e1b4b"/>
+                </svg>`;
+            } else {
+                // 一般・デフォルトの怪しい盛合せ
+                svgContent = `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <!-- 白骨色の平皿 -->
+                    <ellipse cx="50" cy="65" rx="40" ry="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+                    <!-- 混ざり合う謎フード -->
+                    <circle cx="45" cy="56" r="12" fill="${color}"/>
+                    <rect x="38" y="50" width="22" height="12" rx="3" fill="#b45309" transform="rotate(20 38 50)"/>
+                    <!-- 謎のキノコ（トリュフ） -->
+                    <circle cx="60" cy="55" r="7" fill="#1e1b4b"/>
+                    <circle cx="58" cy="52" r="2" fill="#fff" opacity="0.3"/>
+                    <!-- 湯気 -->
+                    <path d="M50 42 Q 45 30, 52 20" stroke="#f1f5f9" stroke-width="2" fill="none" opacity="0.5"/>
+                </svg>`;
+            }
+
+            container.innerHTML = svgContent;
+        }
+
+        // --- AI画像生成（Imagen 4.0）のトリガー ---
+        async function generateDishImage() {
+            if (!currentDish) return;
+
+            const aiBtn = document.getElementById('ai-gen-btn');
+            const aiImgContainer = document.getElementById('ai-image-container');
+            
+            aiBtn.disabled = true;
+            aiBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-lime-400"></i> 実写召喚魔法を展開中...`;
+            aiImgContainer.classList.remove('hidden');
+            aiImgContainer.innerHTML = `<div class="flex flex-col items-center gap-2 text-lime-400">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-lime-400"></div>
+                <span class="text-xs">AI実写召喚中（約5〜10秒）...</span>
+            </div>`;
+            aiImgContainer.style.backgroundImage = 'none';
+
+            // バケモノレストラン用の不気味で魅力的なフード写真プロンプト設計
+            const prompt = `Gothic bizarre monster food presentation photography of "${currentDish.name}". Served creatively inside a monster restaurant table, dark glowing magical lights, extreme details, realistic textures, highly professional food photography.`;
+
+            // リトライロジック付き呼び出し
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+            const payload = {
+                instances: [{ prompt: prompt }],
+                parameters: { sampleCount: 1 }
+            };
+
+            let success = false;
+            let retries = 5;
+            let delay = 1000;
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.predictions && data.predictions[0] && data.predictions[0].bytesBase64Encoded) {
+                            const base64Data = data.predictions[0].bytesBase64Encoded;
+                            const imageUrl = `data:image/png;base64,${base64Data}`;
+                            
+                            aiImgContainer.innerHTML = ''; 
+                            aiImgContainer.style.backgroundImage = `url('${imageUrl}')`;
+                            aiImgContainer.style.backgroundSize = 'cover';
+                            aiImgContainer.style.backgroundPosition = 'center';
+
+                            aiBtn.innerHTML = `<i class="fa-solid fa-eye text-lime-400"></i> 実写召喚に成功！`;
+                            showToast("召喚成功！バケモノが喜ぶ異形の姿が現実になりました。");
+                            success = true;
+                            break;
+                        }
+                    }
+                } catch (err) {
+                    // サイレントでリトライ
+                }
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2;
+            }
+
+            if (!success) {
+                aiImgContainer.classList.add('hidden');
+                aiBtn.disabled = false;
+                aiBtn.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-500"></i> 召喚失敗（再召喚する）`;
+                showToast("実写召喚（画像生成）が失敗しました。もう一度お試しください。");
+            }
+        }
+
+        // --- 図図鑑システム ---
+        function setupCollection() {
+            updateUnlockedCount();
+        }
+
+        function updateUnlockedCount() {
+            const countSpan = document.getElementById('unlocked-count');
+            const ratioDiv = document.getElementById('collection-ratio');
+            
+            const total = MONSTER_RECIPES.length;
+            const unlocked = Array.from(unlockedRecipes).filter(name => 
+                MONSTER_RECIPES.some(r => r.name === name)
+            ).length;
+
+            if (countSpan) countSpan.innerText = unlocked;
+            if (ratioDiv) {
+                const percentage = total > 0 ? Math.round((unlocked / total) * 100) : 0;
+                ratioDiv.innerText = `${unlocked} / ${total} (${percentage}%)`;
+            }
+        }
+
+        function renderCollection() {
+            const grid = document.getElementById('collection-grid');
+            grid.innerHTML = '';
+
+            MONSTER_RECIPES.forEach(recipe => {
+                const isUnlocked = unlockedRecipes.has(recipe.name);
+                const card = document.createElement('div');
+
+                if (isUnlocked) {
+                    // 解放済み
+                    let skullsHtml = '';
+                    for (let i = 0; i < 5; i++) {
+                        skullsHtml += i < recipe.stars ? '<i class="fa-solid fa-skull text-lime-400 text-xs mx-0.5"></i>' : '<i class="fa-solid fa-skull text-neutral-800 text-xs mx-0.5"></i>';
+                    }
+
+                    card.className = "bg-purple-950/40 border border-lime-500/30 rounded-xl p-4 flex flex-col justify-between space-y-3 shadow-md";
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <span class="text-[9px] bg-purple-900 text-lime-300 border border-lime-500/20 px-2 py-0.5 rounded font-mono">${recipe.type}</span>
+                                <div class="flex">${skullsHtml}</div>
+                            </div>
+                            <h4 class="font-bold text-sm text-yellow-300 mt-2">${recipe.name}</h4>
+                            <p class="text-[11px] text-gray-300 mt-1 line-clamp-3 leading-relaxed">${recipe.desc}</p>
+                        </div>
+                        <div class="pt-2 border-t border-purple-900/30 flex flex-col gap-0.5 text-[10px] text-gray-400">
+                            <div>売価: <strong class="text-yellow-400">${recipe.price}</strong></div>
+                            <div>効能: <strong class="text-lime-400">${recipe.effect}</strong></div>
+                            <div>常連: <strong class="text-purple-300">${recipe.customer}</strong></div>
+                        </div>
+                    `;
+                } else {
+                    // 未解放
+                    card.className = "bg-neutral-950/40 border border-purple-950 rounded-xl p-4 flex flex-col justify-center items-center h-40 border-dashed";
+                    card.innerHTML = `
+                        <i class="fa-solid fa-skull-crossbones text-purple-900/40 text-2xl mb-2"></i>
+                        <span class="text-xs text-purple-600 font-bold">？？？？？</span>
+                        <p class="text-[10px] text-purple-800 mt-1 text-center">特定の魔界食材の調和で解放</p>
+                    `;
+                }
+
+                grid.appendChild(card);
+            });
+        }
+
+        // --- 再リセット ---
+        function resetKitchen() {
+            clearSelection();
+            document.getElementById('result-section').classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- 自慢シェア ---
+        function shareDish() {
+            if (!currentDish) return;
+
+            let skulls = "💀".repeat(currentDish.stars) + "🖤".repeat(5 - currentDish.stars);
+            const shareText = `【バケモノレストラン 〜闇の食材錬成厨房〜】
+食材を ${selectedIngredients.length} 個ぶち込んで、最凶のバケモノ料理を錬成したぞ！
+
+🍳 料理名: ${currentDish.name}
+✨ カオス度: ${skulls} (${currentDish.type})
+💰 価格: ${currentDish.price}
+💊 効能: ${currentDish.effect}
+👥 お気に入り客: ${currentDish.customer || 'すべてのバケモノ'}
+
+「${currentDish.desc}」
+キミも極上＆ゲテモノ料理を錬成しよう！ #バケモノレストラン #MonsterBistro`;
+
+            // クリップボードへコピー
+            const el = document.createElement('textarea');
+            el.value = shareText;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            showToast("常連客への宣伝文をクリップボードにコピーしたぞ！");
+        }
+
+        // トースト
+        function showToast(text) {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = text;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 3500);
+        }
+    </script>
 </body>
 </html>
