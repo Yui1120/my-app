@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>深夜の歪んだ動物園 - Midnight Zoo Horror</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons (CDN) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Share+Tech+Mono&display=swap');
+    
+    .font-horror {
+      font-family: 'Creepster', cursive;
+    }
+    .font-mono-tech {
+      font-family: 'Share Tech Mono', monospace;
+    }
+    
+    /* CRTモニター風の走査線エフェクト */
+    .crt-effect {
+      position: relative;
+      overflow: hidden;
+    }
+    .crt-effect::after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      aspect-ratio: auto;
+      background-size: 100% 4px, 6px 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+    
+    /* CCTVのノイズアニメーション */
+    @keyframes cctv-noise {
+      0% { transform: translate(0,0) }
+      10% { transform: translate(-1%, -1%) }
+      20% { transform: translate(-2%, 1%) }
+      30% { transform: translate(1%, -2%) }
+      40% { transform: translate(-1%, 3%) }
+      50% { transform: translate(-3%, 1%) }
+      60% { transform: translate(2%, 1%) }
+      70% { transform: translate(-2%, 2%) }
+      80% { transform: translate(2%, -1%) }
+      90% { transform: translate(-1%, 1%) }
+      100% { transform: translate(0, 0) }
+    }
+    
+    .cctv-static {
+      animation: cctv-noise 0.2s infinite;
+      opacity: 0.15;
+    }
+
+    /* 点滅エフェクト */
+    @keyframes pulse-red {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 0.8; }
+    }
+    .danger-pulse {
+      animation: pulse-red 1.5s infinite;
+    }
+
+    /* スクロールバー非表示 */
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-neutral-950 text-neutral-200 select-none overflow-hidden h-screen w-screen flex flex-col justify-between font-sans">
+
+  <!-- タイトル画面 / ストーリー導入 -->
+  <div id="start-screen" class="absolute inset-0 bg-black z-50 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-1000">
+    <!-- 背景に歪んだ動物園の画像を使用（暗く、不気味に加工） -->
+    <div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity filter blur-[2px]" style="background-image: url('https://yui1120.github.io/my-app/image04.jpg');"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
+
+    <div class="relative z-10 max-w-2xl flex flex-col items-center">
+      <h1 class="text-6xl md:text-8xl text-red-600 font-horror tracking-wider mb-6 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)] animate-pulse">
+        TWISTED ZOO
+      </h1>
+      <p class="text-xs font-mono-tech text-red-500 tracking-widest mb-8 uppercase">Warning: Unidentified entities detected inside the park</p>
+      
+      <div class="bg-neutral-900/90 border border-neutral-800 p-6 rounded-lg text-left text-neutral-300 text-sm md:text-base mb-8 space-y-3 shadow-2xl backdrop-blur-sm max-h-[250px] overflow-y-auto">
+        <p class="font-bold text-red-400">【記録: 2026年6月2日 - 深夜巡回報告】</p>
+        <p>深夜、閉園後の動物園で異常事態が発生した。飼育されていた動物たちが急速に変異し、檻を破壊して園内を徘徊している。</p>
+        <p>君は取り残された夜間警備員だ。メイン電力は落ち、予備電源のみが稼働している。</p>
+        <p>脱出するには、園内の各エリアに隠された <span class="text-yellow-400 font-bold">3つの「ゲートキー（鍵）」</span> を回収し、南側の <span class="text-emerald-400 font-bold">「非常脱出ゲート」</span> に向かわねばならない。</p>
+        <p class="text-red-400 font-bold">【注意】徘徊する変異体に接触すると即座に命を落とす。奴らの視界から隠れるか、走って逃げ延びろ。監視カメラ（CCTV）の映像が奴らの位置を特定する手がかりになるはずだ。</p>
+      </div>
+
+      <button id="start-btn" class="px-8 py-4 bg-red-950 hover:bg-red-900 border-2 border-red-600 text-red-200 hover:text-white font-bold text-xl rounded-md transition duration-300 shadow-[0_0_15px_rgba(220,38,38,0.3)] hover:shadow-[0_0_25px_rgba(220,38,38,0.6)] uppercase tracking-widest flex items-center gap-3">
+        <i data-lucide="play" class="w-6 h-6"></i> 探索を開始する
+      </button>
+      
+      <p class="text-xs text-neutral-500 mt-6 font-mono-tech">Recommended: Use headphones for full immersion.</p>
+    </div>
+  </div>
+
+  <!-- メインゲームインターフェース -->
+  <div class="flex-1 flex flex-col md:flex-row h-full relative overflow-hidden">
+    
+    <!-- 左側: メイン2.5Dゲーム画面 (Canvas) -->
+    <div class="flex-1 relative flex flex-col bg-neutral-900 border-b md:border-b-0 md:border-r border-neutral-800">
+      <!-- 上部ステータスバー -->
+      <div class="bg-neutral-950 p-3 flex justify-between items-center border-b border-neutral-800 font-mono-tech text-xs tracking-wider">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping"></span>
+          <span class="text-red-500 font-bold">LIVE: ZOO_SECTOR_MAIN</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="text-neutral-400">
+            KEYS: <span id="keys-count" class="text-yellow-400 font-bold">0</span> / 3
+          </div>
+          <div class="text-neutral-400">
+            STAMINA: <span id="stamina-val" class="text-blue-400 font-bold">100</span>%
+          </div>
+        </div>
+      </div>
+
+      <!-- キャンバスエリア -->
+      <div class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
+        <canvas id="gameCanvas" class="max-w-full max-h-full aspect-square md:aspect-video object-contain"></canvas>
+        
+        <!-- 暗闇オーバレイ（懐中電灯エフェクトを強調） -->
+        <div class="absolute inset-0 pointer-events-none bg-radial-gradient"></div>
+        
+        <!-- ゲームオーバー / クリア表示用オーバーレイ -->
+        <div id="game-overlay" class="absolute inset-0 bg-black/90 flex-col items-center justify-center hidden z-30 p-6 text-center">
+          <div id="overlay-content" class="max-w-md">
+            <!-- JSで動的に書き換え -->
+          </div>
+        </div>
+
+        <!-- 危険警告エフェクト（モンスターが近いとき） -->
+        <div id="heartbeat-overlay" class="absolute inset-0 border-[8px] border-red-900/0 pointer-events-none transition-all duration-300 z-20"></div>
+        
+        <!-- タッチデバイス用のバーチャルアナログパッド（モバイルフレンドリー） -->
+        <div id="mobile-controls" class="absolute bottom-4 left-4 right-4 flex justify-between items-end md:hidden z-20 pointer-events-none">
+          <!-- 移動ジョイスティック -->
+          <div id="joystick-container" class="w-28 h-28 bg-neutral-900/60 rounded-full border border-neutral-700 relative pointer-events-auto flex items-center justify-center">
+            <div id="joystick-knob" class="w-10 h-10 bg-red-700/80 rounded-full cursor-pointer absolute shadow-lg transition-all"></div>
+          </div>
+          <!-- 走る・隠れるアクションボタン -->
+          <div class="flex flex-col gap-2 pointer-events-auto">
+            <button id="mobile-run-btn" class="w-14 h-14 bg-blue-900/80 border border-blue-500 rounded-full text-white flex items-center justify-center active:bg-blue-700 font-bold shadow-lg">
+              RUN
+            </button>
+            <button id="mobile-hide-btn" class="w-14 h-14 bg-neutral-800/80 border border-neutral-600 rounded-full text-white flex items-center justify-center active:bg-neutral-600 font-bold shadow-lg">
+              HIDE
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 下部キー操作解説 (デスクトップ向け) -->
+      <div class="hidden md:flex bg-neutral-950 p-2.5 text-xs text-neutral-400 justify-between border-t border-neutral-800">
+        <div>移動: <span class="bg-neutral-800 px-1 rounded text-white font-mono">WASD</span> または <span class="bg-neutral-800 px-1 rounded text-white font-mono">矢印キー</span></div>
+        <div>ダッシュ: <span class="bg-neutral-800 px-1 rounded text-white font-mono">Shiftキー</span> (スタミナ消費)</div>
+        <div>ロッカーに隠れる: <span class="bg-neutral-800 px-1 rounded text-white font-mono">Spaceキー</span> (近くの物陰で)</div>
+      </div>
+    </div>
+
+    <!-- 右側: 監視カメラ(CCTV)モニタールーム (HTML) -->
+    <div class="w-full md:w-80 bg-neutral-950 flex flex-col border-t md:border-t-0 border-neutral-800 shrink-0 font-mono-tech select-none">
+      <div class="p-3 bg-neutral-900 border-b border-neutral-800 text-xs font-bold text-red-500 flex items-center gap-2">
+        <i data-lucide="monitor" class="w-4 h-4"></i>
+        <span>SECURITY MONITOR SYSTEM v1.4</span>
+      </div>
+
+      <!-- カメラ映像エリア -->
+      <div class="relative aspect-video bg-black border-b border-neutral-800 overflow-hidden crt-effect">
+        <!-- 画面ノイズ -->
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml;utf8,<svg viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\"><filter id=\"n\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.8\"/></filter><rect width=\"100\" height=\"100\" filter=\"url(%23n)\" opacity=\"0.15\"/></svg>')] cctv-static pointer-events-none z-10"></div>
+        
+        <!-- カメラ画像表示 (yui1120.github.ioの画像やノイズイメージ) -->
+        <div id="cctv-view" class="w-full h-full relative transition-all duration-300">
+          <img id="cctv-img" src="https://yui1120.github.io/my-app/image04.jpg" class="w-full h-full object-cover opacity-60 mix-blend-color-dodge filter brightness-75 contrast-125" alt="CCTV Feed">
+          <div class="absolute top-2 left-2 bg-black/60 px-1.5 py-0.5 rounded text-[10px] text-red-500 font-mono tracking-widest flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping"></span>
+            <span id="cctv-label">CAM 01: MAIN GATE</span>
+          </div>
+          <!-- カメラ内グリッド、タイムスタンプ -->
+          <div class="absolute bottom-2 left-2 text-[9px] text-green-400">
+            2026-06-02 <span id="cctv-time">03:14:22</span>
+          </div>
+          <div id="cctv-status" class="absolute bottom-2 right-2 text-[9px] text-red-500 font-bold danger-pulse">
+            LIVE FEED
+          </div>
+        </div>
+      </div>
+
+      <!-- カメラ切り替え用コントローラー -->
+      <div class="p-3 bg-neutral-950 flex-1 flex flex-col justify-between">
+        <div>
+          <div class="text-xs text-neutral-400 mb-2">SELECT FEED (カメラ切り替え):</div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button onclick="switchCamera(1)" id="cam-btn-1" class="p-2 border border-red-950 bg-red-950/30 text-red-400 rounded hover:bg-red-900/30 text-left flex items-center gap-1 transition">
+              <i data-lucide="video" class="w-3.5 h-3.5"></i> CAM 1: 中央広場
+            </button>
+            <button onclick="switchCamera(2)" id="cam-btn-2" class="p-2 border border-neutral-800 bg-neutral-900 text-neutral-400 rounded hover:bg-neutral-800 text-left flex items-center gap-1 transition">
+              <i data-lucide="video" class="w-3.5 h-3.5"></i> CAM 2: 猛獣エリア
+            </button>
+            <button onclick="switchCamera(3)" id="cam-btn-3" class="p-2 border border-neutral-800 bg-neutral-900 text-neutral-400 rounded hover:bg-neutral-800 text-left flex items-center gap-1 transition">
+              <i data-lucide="video" class="w-3.5 h-3.5"></i> CAM 3: 鳥類温室
+            </button>
+            <button onclick="switchCamera(4)" id="cam-btn-4" class="p-2 border border-neutral-800 bg-neutral-900 text-neutral-400 rounded hover:bg-neutral-800 text-left flex items-center gap-1 transition">
+              <i data-lucide="video" class="w-3.5 h-3.5"></i> CAM 4: 南門ゲート
+            </button>
+          </div>
+        </div>
+
+        <!-- 監視装置のログ / ステータス -->
+        <div class="mt-4 border border-neutral-900 bg-neutral-950 p-2.5 rounded text-[11px] leading-relaxed">
+          <div class="text-red-500 font-bold border-b border-neutral-900 pb-1 mb-1.5 flex items-center gap-1">
+            <i data-lucide="terminal" class="w-3 h-3"></i> SYSTEM SECURITY LOG
+          </div>
+          <div id="security-log" class="space-y-1 text-neutral-400 h-24 overflow-y-auto font-mono text-[10px]">
+            <div>[03:00] セキュリティ接続確立。</div>
+            <div>[03:02] 非常電源に切り替わりました。</div>
+            <div class="text-yellow-500">[03:05] 変異種が徘徊中。注意してください。</div>
+          </div>
+        </div>
+
+        <!-- ミュートボタン -->
+        <div class="mt-2 flex justify-end">
+          <button id="sound-toggle-btn" class="text-xs text-neutral-500 hover:text-neutral-300 flex items-center gap-1 px-2 py-1 rounded border border-neutral-800">
+            <i id="sound-icon" data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+            <span id="sound-text">SOUND: ON</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ゲーム内部スクリプト -->
+  <script>
+    // --- グローバル変数 & 設定 ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // キャンバスの標準アスペクト比設定
+    function resizeCanvas() {
+      const parent = canvas.parentElement;
+      canvas.width = parent.clientWidth;
+      canvas.height = parent.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // 音声管理（Web Audio APIによるホラー演出用）
+    let audioCtx = null;
+    let heartbeatOsc = null;
+    let mainGain = null;
+    let soundEnabled = true;
+
+    // ゲーム状態
+    let keysCollected = 0;
+    const totalKeys = 3;
+    let playerStamina = 100;
+    let isSprinting = false;
+    let isHiding = false;
+    let gameState = 'title'; // title, playing, gameover, win
+    let currentCameraId = 1;
+
+    // マップ設定
+    const mapSize = 1000; // 1000x1000ピクセルの仮想空間
+    const gridCount = 20;
+    const cellSize = mapSize / gridCount;
+
+    // プレイヤーオブジェクト
+    const player = {
+      x: 100,
+      y: 100,
+      radius: 12,
+      angle: 0,
+      speed: 3,
+      sprintSpeed: 5,
+      isMoving: false,
+      hideTimer: 0
+    };
+
+    // モンスターオブジェクト（園内を徘徊する変異した動物たち）
+    const monsters = [
+      {
+        id: 'Lion',
+        name: '変異ライオン',
+        x: 500,
+        y: 200,
+        speed: 1.8,
+        aggroSpeed: 4.2,
+        radius: 16,
+        color: '#ff3333',
+        waypoints: [{x: 200, y: 200}, {x: 800, y: 200}, {x: 800, y: 500}, {x: 200, y: 500}],
+        waypointIndex: 0,
+        state: 'patrol', // patrol, chase, search
+        targetX: 0,
+        targetY: 0,
+        searchTimer: 0,
+        detectedPlayer: false,
+        angle: 0
+      },
+      {
+        id: 'Gorilla',
+        name: '異形ゴリラ',
+        x: 200,
+        y: 800,
+        speed: 1.5,
+        aggroSpeed: 3.8,
+        radius: 18,
+        color: '#9900ff',
+        waypoints: [{x: 200, y: 800}, {x: 500, y: 800}, {x: 500, y: 500}, {x: 200, y: 500}],
+        waypointIndex: 0,
+        state: 'patrol',
+        targetX: 0,
+        targetY: 0,
+        searchTimer: 0,
+        detectedPlayer: false,
+        angle: 0
+      },
+      {
+        id: 'Owl',
+        name: '夜行巨大梟',
+        x: 800,
+        y: 800,
+        speed: 2.2,
+        aggroSpeed: 4.5,
+        radius: 14,
+        color: '#00ffff',
+        waypoints: [{x: 800, y: 800}, {x: 800, y: 400}, {x: 500, y: 400}, {x: 500, y: 800}],
+        waypointIndex: 0,
+        state: 'patrol',
+        targetX: 0,
+        targetY: 0,
+        searchTimer: 0,
+        detectedPlayer: false,
+        angle: 0
+      }
+    ];
+
+    // マップ障害物（壁）のデータ (0: 空白, 1: コンクリート壁, 2: 檻・格子, 3: ロッカー（隠れ場所）, 4: 鍵, 5: 非常ゲート)
+    const mapGrid = [
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,3,1],
+      [1,0,0,0,1,0,1,1,0,1,0,1,1,0,1,0,1,1,0,1],
+      [1,0,3,0,0,0,1,4,0,0,0,0,1,0,0,0,1,0,0,1],
+      [1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,0,1,1,0,1],
+      [1,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,1,0,1],
+      [1,0,1,1,2,2,1,0,1,0,1,0,1,1,2,2,1,1,0,1],
+      [1,0,2,0,0,0,2,0,1,0,1,0,2,0,0,0,2,0,0,1],
+      [1,0,2,0,4,0,2,0,0,0,0,0,2,0,0,0,2,0,3,1],
+      [1,0,2,2,2,2,2,0,1,1,1,0,2,2,2,2,2,0,0,1],
+      [1,0,0,0,0,0,0,0,1,3,1,0,0,0,0,0,0,0,1,1],
+      [1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1],
+      [1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,3,1],
+      [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,0,1],
+      [1,0,0,3,1,0,1,4,1,0,1,0,1,0,1,0,1,1,0,1],
+      [1,1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1],
+      [1,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,1],
+      [1,1,1,1,1,1,1,1,1,5,5,1,1,1,1,1,1,1,1,1]
+    ];
+
+    // アイテム（鍵）の情報
+    const keys = [
+      { x: 7.5 * cellSize, y: 3.5 * cellSize, collected: false },
+      { x: 4.5 * cellSize, y: 8.5 * cellSize, collected: false },
+      { x: 7.5 * cellSize, y: 14.5 * cellSize, collected: false }
+    ];
+
+    // 隠れ場所（ロッカー）の座標リスト
+    const hidingSpots = [];
+    // 脱出ゲートの座標
+    const escapeGate = { x: 9.5 * cellSize, y: 19 * cellSize, width: cellSize * 2, height: cellSize };
+
+    // マップ解析して隠れ場所などを取得
+    for (let r = 0; r < gridCount; r++) {
+      for (let c = 0; c < gridCount; c++) {
+        if (mapGrid[r][c] === 3) {
+          hidingSpots.push({
+            x: c * cellSize + cellSize/2,
+            y: r * cellSize + cellSize/2,
+            radius: 20
+          });
+        }
+      }
+    }
+
+    // カメラ座標
+    const cameras = {
+      1: { name: "CAM 1: 中央広場", x: 500, y: 500, angle: 0, range: 250 },
+      2: { name: "CAM 2: 猛獣エリア", x: 250, y: 250, angle: Math.PI/4, range: 220 },
+      3: { name: "CAM 3: 鳥類温室", x: 750, y: 250, angle: Math.PI*3/4, range: 220 },
+      4: { name: "CAM 4: 南門ゲート", x: 500, y: 850, angle: -Math.PI/2, range: 250 }
+    };
+
+    // キー入力監視
+    const keysPressed = {};
+    window.addEventListener('keydown', (e) => {
+      keysPressed[e.code] = true;
+      
+      // スタート画面スキップ
+      if (gameState === 'title' && (e.code === 'Enter' || e.code === 'Space')) {
+        startGame();
+      }
+
+      // 隠れるアクションの切り替え
+      if (e.code === 'Space' && gameState === 'playing') {
+        toggleHide();
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      keysPressed[e.code] = false;
+    });
+
+    // モバイル用バーチャルジョイスティックの制御
+    let joystickActive = false;
+    let joystickStart = { x: 0, y: 0 };
+    let joystickMove = { x: 0, y: 0 };
+    const joystickKnob = document.getElementById('joystick-knob');
+    const joystickContainer = document.getElementById('joystick-container');
+
+    joystickContainer.addEventListener('touchstart', (e) => {
+      joystickActive = true;
+      const touch = e.touches[0];
+      const rect = joystickContainer.getBoundingClientRect();
+      joystickStart = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
+      updateJoystick(touch);
+    });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!joystickActive) return;
+      updateJoystick(e.touches[0]);
+    }, { passive: false });
+
+    window.addEventListener('touchend', () => {
+      if (!joystickActive) return;
+      joystickActive = false;
+      joystickKnob.style.transform = 'translate(0px, 0px)';
+      joystickMove = { x: 0, y: 0 };
+      player.isMoving = false;
+    });
+
+    function updateJoystick(touch) {
+      const dx = touch.clientX - joystickStart.x;
+      const dy = touch.clientY - joystickStart.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const maxDist = 40; // 移動限界ピクセル数
+
+      if (dist === 0) return;
+
+      const angle = Math.atan2(dy, dx);
+      const moveX = Math.min(dist, maxDist) * Math.cos(angle);
+      const moveY = Math.min(dist, maxDist) * Math.sin(angle);
+
+      joystickKnob.style.transform = `translate(${moveX}px, ${moveY}px)`;
+      
+      // プレイヤーの移動ベクトルに反映
+      joystickMove = {
+        x: Math.cos(angle),
+        y: Math.sin(angle)
+      };
+      player.isMoving = true;
+      player.angle = angle;
+    }
+
+    // モバイルアクションボタン
+    const mobileRunBtn = document.getElementById('mobile-run-btn');
+    mobileRunBtn.addEventListener('touchstart', () => { isSprinting = true; });
+    mobileRunBtn.addEventListener('touchend', () => { isSprinting = false; });
+
+    const mobileHideBtn = document.getElementById('mobile-hide-btn');
+    mobileHideBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      toggleHide();
+    });
+
+    // --- Web Audio API による恐怖サウンド設計 ---
+    function initAudio() {
+      if (audioCtx) return;
+      
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+        
+        mainGain = audioCtx.createGain();
+        mainGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        mainGain.connect(audioCtx.destination);
+        
+        // 低周波パルス音による不穏な心臓鼓動音
+        heartbeatOsc = audioCtx.createOscillator();
+        heartbeatOsc.type = 'sine';
+        heartbeatOsc.frequency.setValueAtTime(55, audioCtx.currentTime); // 低い重低音
+        
+        const heartbeatGain = audioCtx.createGain();
+        heartbeatGain.gain.setValueAtTime(0, audioCtx.currentTime);
+        
+        heartbeatOsc.connect(heartbeatGain);
+        heartbeatGain.connect(mainGain);
+        heartbeatOsc.start();
+        
+        // 心拍ループ再生
+        let isBeat = false;
+        setInterval(() => {
+          if (!soundEnabled || gameState !== 'playing') return;
+          
+          // モンスターが近くにいるほど心拍数を上げ、ボリュームを上げる
+          let minDistance = 9999;
+          monsters.forEach(m => {
+            const d = Math.hypot(m.x - player.x, m.y - player.y);
+            if (d < minDistance) minDistance = d;
+          });
+          
+          let beatInterval = 1000; // 通常時1秒に1回
+          let beatVolume = 0.15;
+          
+          if (minDistance < 150) {
+            beatInterval = 300; // 最接近時
+            beatVolume = 0.8;
+          } else if (minDistance < 300) {
+            beatInterval = 600;
+            beatVolume = 0.4;
+          }
+
+          // ド、ドッ、という2連拍動のシミュレート
+          heartbeatGain.gain.setValueAtTime(beatVolume, audioCtx.currentTime);
+          heartbeatGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+          
+          setTimeout(() => {
+            if (!soundEnabled) return;
+            heartbeatGain.gain.setValueAtTime(beatVolume * 0.7, audioCtx.currentTime);
+            heartbeatGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+          }, 180);
+          
+        }, 1000); // 動的間隔の処理は簡易的にタイマー間隔を動的にするか固定心拍としてノイズ比率を変える
+        
+        // 環境ノイズ（持続音）
+        createHumNoise();
+        
+      } catch (err) {
+        console.error("Audio Context Init Failed: ", err);
+      }
+    }
+
+    function playBeep(freq, duration) {
+      if (!soundEnabled || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      
+      gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+      
+      osc.connect(gainNode);
+      gainNode.connect(mainGain);
+      
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    // 機械のハミングノイズ
+    function createHumNoise() {
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      
+      const whiteNoise = audioCtx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+      whiteNoise.loop = true;
+      
+      // フィルターで低音の不気味な響きにする
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(120, audioCtx.currentTime);
+      
+      const noiseGain = audioCtx.createGain();
+      noiseGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      
+      whiteNoise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(mainGain);
+      
+      whiteNoise.start();
+    }
+
+    // --- ゲーム開始処理 ---
+    document.getElementById('start-btn').addEventListener('click', () => {
+      startGame();
+    });
+
+    function startGame() {
+      initAudio();
+      
+      // スタート画面のフェードアウト
+      const startScreen = document.getElementById('start-screen');
+      startScreen.style.opacity = '0';
+      setTimeout(() => {
+        startScreen.style.display = 'none';
+      }, 1000);
+
+      // ステート初期化
+      gameState = 'playing';
+      keysCollected = 0;
+      playerStamina = 100;
+      isHiding = false;
+      player.x = 100;
+      player.y = 100;
+      player.angle = 0;
+      
+      // 鍵をランダムっぽく配置
+      keys.forEach(k => k.collected = false);
+      document.getElementById('keys-count').textContent = '0';
+      
+      // モンスター再配置
+      monsters[0].x = 500; monsters[0].y = 200; monsters[0].state = 'patrol';
+      monsters[1].x = 200; monsters[1].y = 800; monsters[1].state = 'patrol';
+      monsters[2].x = 800; monsters[2].y = 800; monsters[2].state = 'patrol';
+
+      addLog("探索フェーズ開始。南のゲートから脱出してください。");
+      playBeep(440, 0.4);
+      
+      // ゲームループ起動
+      requestAnimationFrame(gameLoop);
+    }
+
+    // ロッカーでの隠れる処理切り替え
+    function toggleHide() {
+      if (isHiding) {
+        isHiding = false;
+        addLog("物陰から出ました。");
+        playBeep(300, 0.1);
+      } else {
+        // 近くに隠れ場所があるか確認
+        let canHide = false;
+        for (const spot of hidingSpots) {
+          const d = Math.hypot(player.x - spot.x, player.y - spot.y);
+          if (d < 30) {
+            canHide = true;
+            break;
+          }
+        }
+        if (canHide) {
+          isHiding = true;
+          addLog("安全な物陰に身を潜めました。モンスターの目を眩ませます。");
+          playBeep(600, 0.2);
+        } else {
+          addLog("ここには隠れる場所がない！");
+          playBeep(180, 0.15);
+        }
+      }
+    }
+
+    // --- カメラ切り替え ---
+    function switchCamera(id) {
+      if (!cameras[id]) return;
+      currentCameraId = id;
+      playBeep(880, 0.05);
+
+      // ボタンUIの切り替え
+      for (let i = 1; i <= 4; i++) {
+        const btn = document.getElementById(`cam-btn-${i}`);
+        if (i === id) {
+          btn.classList.add('border-red-600', 'bg-red-950/30', 'text-red-400');
+          btn.classList.remove('border-neutral-800', 'bg-neutral-900', 'text-neutral-400');
+        } else {
+          btn.classList.remove('border-red-600', 'bg-red-950/30', 'text-red-400');
+          btn.classList.add('border-neutral-800', 'bg-neutral-900', 'text-neutral-400');
+        }
+      }
+
+      // 監視画面のラベルと時間更新
+      document.getElementById('cctv-label').textContent = cameras[id].name.toUpperCase();
+      
+      // カメラの映像風変化（ご提示いただいた画像を使用）
+      const img = document.getElementById('cctv-img');
+      img.style.filter = `brightness(${(Math.random() * 0.4 + 0.4).toFixed(2)}) contrast(1.3) grayscale(0.8) hue-rotate(${id * 45}deg)`;
+      
+      // ノイズを一瞬入れる
+      img.style.opacity = '0.2';
+      setTimeout(() => {
+        img.style.opacity = '0.6';
+      }, 150);
+
+      addLog(`CCTVモニターを [${cameras[id].name}] に変更しました。`);
+    }
+
+    // セキュリティログに追記
+    const logContainer = document.getElementById('security-log');
+    function addLog(text) {
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+      const div = document.createElement('div');
+      div.innerHTML = `<span class="text-neutral-600">[${timeStr}]</span> ${text}`;
+      logContainer.appendChild(div);
+      logContainer.scrollTop = logContainer.scrollHeight;
+      
+      // ログ数を制限
+      while (logContainer.children.length > 25) {
+        logContainer.removeChild(logContainer.firstChild);
+      }
+    }
+
+    // --- 音声ミュート切り替え ---
+    const soundBtn = document.getElementById('sound-toggle-btn');
+    soundBtn.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      const icon = document.getElementById('sound-icon');
+      const text = document.getElementById('sound-text');
+      
+      if (soundEnabled) {
+        icon.setAttribute('data-lucide', 'volume-2');
+        text.textContent = 'SOUND: ON';
+        if (mainGain && audioCtx) {
+          mainGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        }
+      } else {
+        icon.setAttribute('data-lucide', 'volume-x');
+        text.textContent = 'SOUND: OFF';
+        if (mainGain && audioCtx) {
+          mainGain.gain.setValueAtTime(0, audioCtx.currentTime);
+        }
+      }
+      lucide.createIcons();
+    });
+
+    // タイムスタンプリアルタイム更新
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('cctv-time').textContent = now.toLocaleTimeString();
+    }, 1000);
+
+
+    // --- 物理衝突判定 & ゲーム内システム ---
+
+    // 壁との衝突判定
+    function checkWallCollision(x, y, radius) {
+      // 四角いキャラクターの外周４点などでシンプルに計算
+      const checkPoints = [
+        {x: x - radius, y: y - radius},
+        {x: x + radius, y: y - radius},
+        {x: x - radius, y: y + radius},
+        {x: x + radius, y: y + radius}
+      ];
+
+      for (const p of checkPoints) {
+        const gridX = Math.floor(p.x / cellSize);
+        const gridY = Math.floor(p.y / cellSize);
+
+        if (gridX < 0 || gridX >= gridCount || gridY < 0 || gridY >= gridCount) {
+          return true; // 画面外は壁
+        }
+
+        const tileType = mapGrid[gridY][gridX];
+        // 1:壁, 2:檻, 5: 非常ゲート（3つの鍵が揃っていない場合は壁として扱う）
+        if (tileType === 1 || tileType === 2) {
+          return true;
+        }
+        if (tileType === 5 && keysCollected < totalKeys) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+
+    // --- メインゲームループ ---
+    let lastTime = 0;
+
+    function gameLoop(timestamp) {
+      if (gameState !== 'playing') return;
+
+      const dt = timestamp - lastTime;
+      lastTime = timestamp;
+
+      updatePlayer();
+      updateMonsters();
+      checkCollisions();
+      draw();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // プレイヤーの移動と状態の更新
+    function updatePlayer() {
+      if (isHiding) {
+        // 隠れている間は動けないがスタミナ超回復
+        playerStamina = Math.min(100, playerStamina + 0.5);
+        document.getElementById('stamina-val').textContent = Math.floor(playerStamina);
+        return;
+      }
+
+      // ダッシュ判定 (Shiftキー またはモバイルでSprinting)
+      let currentSpeed = player.speed;
+      isSprinting = (keysPressed['ShiftLeft'] || keysPressed['ShiftRight'] || isSprinting) && playerStamina > 5;
+      
+      if (isSprinting && player.isMoving) {
+        currentSpeed = player.sprintSpeed;
+        playerStamina = Math.max(0, playerStamina - 0.6); // スタミナ消費
+      } else {
+        playerStamina = Math.min(100, playerStamina + 0.2); // 通常回復
+      }
+      document.getElementById('stamina-val').textContent = Math.floor(playerStamina);
+
+      let dx = 0;
+      let dy = 0;
+
+      // キーボード移動
+      if (keysPressed['KeyW'] || keysPressed['ArrowUp']) { dy = -1; }
+      if (keysPressed['KeyS'] || keysPressed['ArrowDown']) { dy = 1; }
+      if (keysPressed['KeyA'] || keysPressed['ArrowLeft']) { dx = -1; }
+      if (keysPressed['KeyD'] || keysPressed['ArrowRight']) { dx = 1; }
+
+      // 移動量の正規化
+      if (dx !== 0 || dy !== 0) {
+        const length = Math.sqrt(dx*dx + dy*dy);
+        player.angle = Math.atan2(dy, dx);
+        dx = (dx / length) * currentSpeed;
+        dy = (dy / length) * currentSpeed;
+        player.isMoving = true;
+      } else if (joystickActive) {
+        // モバイルジョイスティック
+        dx = joystickMove.x * currentSpeed;
+        dy = joystickMove.y * currentSpeed;
+      } else {
+        player.isMoving = false;
+      }
+
+      // 移動適用（滑り補正付）
+      if (player.isMoving) {
+        const newX = player.x + dx;
+        const newY = player.y + dy;
+
+        // X軸衝突判定
+        if (!checkWallCollision(newX, player.y, player.radius)) {
+          player.x = newX;
+        }
+        // Y軸衝突判定
+        if (!checkWallCollision(player.x, newY, player.radius)) {
+          player.y = newY;
+        }
+
+        // 境界値制限
+        player.x = Math.max(player.radius, Math.min(mapSize - player.radius, player.x));
+        player.y = Math.max(player.radius, Math.min(mapSize - player.radius, player.y));
+      }
+    }
+
+    // モンスター自律AIの更新
+    function updateMonsters() {
+      let playerClosestDistance = 9999;
+
+      monsters.forEach(m => {
+        const distToPlayer = Math.hypot(m.x - player.x, m.y - player.y);
+        if (distToPlayer < playerClosestDistance) {
+          playerClosestDistance = distToPlayer;
+        }
+
+        // 見通し判定 (レイキャストは簡易的に距離と角度、及び「隠れているか」で判定)
+        const inLightCone = distToPlayer < 180; // 警戒範囲
+        const canSee = inLightCone && !isHiding;
+
+        if (canSee && m.state !== 'chase') {
+          m.state = 'chase';
+          addLog(`<span class="text-red-500 font-bold">警告: [${m.name}] が生存者を確認。追跡中！</span>`);
+          playBeep(220, 0.5);
+        }
+
+        if (m.state === 'chase') {
+          m.targetX = player.x;
+          m.targetY = player.y;
+
+          // 追跡を諦める条件（プレイヤーが隠れるか、距離が離れすぎた場合）
+          if (isHiding || distToPlayer > 300) {
+            m.state = 'search';
+            m.searchTimer = 180; // 3秒間探索
+            addLog(`<span class="text-yellow-500">[${m.name}] がターゲットをロスト。周辺を捜索中。</span>`);
+          }
+        }
+
+        // 状態に応じた挙動
+        if (m.state === 'patrol') {
+          // 巡回ポイントへ移動
+          const target = m.waypoints[m.waypointIndex];
+          const distToWaypoint = Math.hypot(m.x - target.x, m.y - target.y);
+          
+          if (distToWaypoint < 10) {
+            m.waypointIndex = (m.waypointIndex + 1) % m.waypoints.length;
+          }
+          
+          moveMonsterTowards(m, target.x, target.y, m.speed);
+        } else if (m.state === 'chase') {
+          // プレイヤーを急襲
+          moveMonsterTowards(m, m.targetX, m.targetY, m.aggroSpeed);
+        } else if (m.state === 'search') {
+          // ロスト地点の周囲をうろうろ
+          m.searchTimer--;
+          if (m.searchTimer <= 0) {
+            m.state = 'patrol';
+            addLog(`[${m.name}] は通常巡回に戻りました。`);
+          }
+          // 少しだけジグザグ移動
+          const wanderX = m.targetX + Math.sin(m.searchTimer * 0.05) * 50;
+          const wanderY = m.targetY + Math.cos(m.searchTimer * 0.05) * 50;
+          moveMonsterTowards(m, wanderX, wanderY, m.speed);
+        }
+      });
+
+      // 心拍数に連動して周りの赤点滅エフェクトを制御
+      const borderOverlay = document.getElementById('heartbeat-overlay');
+      if (playerClosestDistance < 180) {
+        const intensity = (1 - (playerClosestDistance / 180)).toFixed(2);
+        borderOverlay.style.boxShadow = `inset 0 0 ${40 * intensity}px rgba(185, 28, 28, ${0.8 * intensity})`;
+      } else {
+        borderOverlay.style.boxShadow = 'none';
+      }
+    }
+
+    // モンスターの壁衝突を考慮した単純な移動ロジック
+    function moveMonsterTowards(m, targetX, targetY, speed) {
+      const angle = Math.atan2(targetY - m.y, targetX - m.x);
+      m.angle = angle;
+      const dx = Math.cos(angle) * speed;
+      const dy = Math.sin(angle) * speed;
+
+      const newX = m.x + dx;
+      const newY = m.y + dy;
+
+      if (!checkWallCollision(newX, m.y, m.radius)) {
+        m.x = newX;
+      } else {
+        // 壁にぶつかったらスライドするか逆方向に
+        m.x += Math.cos(angle + Math.PI/2) * speed * 0.5;
+      }
+
+      if (!checkWallCollision(m.x, newY, m.radius)) {
+        m.y = newY;
+      } else {
+        m.y += Math.sin(angle + Math.PI/2) * speed * 0.5;
+      }
+    }
+
+    // 衝突確認（鍵の入手、脱出、ゲームオーバー）
+    function checkCollisions() {
+      // 1. 鍵の回収
+      keys.forEach((key, index) => {
+        if (!key.collected) {
+          const d = Math.hypot(player.x - key.x, player.y - key.y);
+          if (d < player.radius + 10) {
+            key.collected = true;
+            keysCollected++;
+            document.getElementById('keys-count').textContent = keysCollected;
+            addLog(`<span class="text-yellow-400 font-bold">鍵を回収しました (${keysCollected}/${totalKeys})！</span>`);
+            playBeep(523.25, 0.4); // C5 ド
+
+            if (keysCollected === totalKeys) {
+              addLog(`<span class="text-emerald-400 font-bold">全ての鍵が揃った！南側の非常脱出ゲートが開放されました！</span>`);
+              playBeep(659.25, 0.6); // E5 ミ
+            }
+          }
+        }
+      });
+
+      // 2. モンスターとの衝突（ゲームオーバー）
+      monsters.forEach(m => {
+        const d = Math.hypot(player.x - m.x, player.y - m.y);
+        // 隠れている間は無敵（見つからない）
+        if (d < player.radius + m.radius && !isHiding) {
+          triggerGameOver();
+        }
+      });
+
+      // 3. ゴール判定
+      if (keysCollected === totalKeys) {
+        // 非常ゲートの判定 (南側 Y=19セルの位置)
+        if (player.y > 18.5 * cellSize && player.x > 8.5 * cellSize && player.x < 11.5 * cellSize) {
+          triggerWin();
+        }
+      }
+    }
+
+    // ゲームオーバー処理
+    function triggerGameOver() {
+      gameState = 'gameover';
+      playBeep(110, 1.2); // 低音
+      
+      const overlay = document.getElementById('game-overlay');
+      const content = document.getElementById('overlay-content');
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+
+      content.innerHTML = `
+        <h2 class="text-5xl font-horror text-red-600 mb-4 animate-bounce">DIED IN DARKNESS</h2>
+        <p class="text-neutral-400 text-sm mb-6 leading-relaxed">
+          変異した生物によって暗闇の中に引きずり込まれました...<br>
+          動物園の歪んだ生態系の犠牲となりました。
+        </p>
+        <button onclick="restartGame()" class="px-6 py-3 bg-red-950 border border-red-600 text-red-300 font-bold rounded hover:bg-red-900 transition">
+          再び挑戦する
+        </button>
+      `;
+
+      addLog("<span class='text-red-600 font-bold'>[通信断絶] 生命反応が消失しました。</span>");
+    }
+
+    // ゲームクリア処理
+    function triggerWin() {
+      gameState = 'win';
+      playBeep(880, 0.2);
+      setTimeout(() => playBeep(1046.5, 0.4), 150); // ファンファーレ風
+      
+      const overlay = document.getElementById('game-overlay');
+      const content = document.getElementById('overlay-content');
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+
+      content.innerHTML = `
+        <h2 class="text-5xl font-horror text-emerald-500 mb-4 tracking-widest">ESCAPED</h2>
+        <p class="text-neutral-400 text-sm mb-6 leading-relaxed">
+          おめでとうございます！君はすべての鍵を解除し、<br>
+          悪夢の広がる夜間動物園から生還することに成功した。
+        </p>
+        <button onclick="restartGame()" class="px-6 py-3 bg-emerald-950 border border-emerald-500 text-emerald-300 font-bold rounded hover:bg-emerald-900 transition">
+          もう一度遊ぶ
+        </button>
+      `;
+
+      addLog("<span class='text-emerald-500 font-bold'>[通信終了] 被験者Aがエリアからの離脱に成功。テスト完了。</span>");
+    }
+
+    function restartGame() {
+      document.getElementById('game-overlay').classList.add('hidden');
+      document.getElementById('game-overlay').classList.remove('flex');
+      startGame();
+    }
+
+
+    // --- 2.5D レンダリング（懐中電灯・照明エフェクト付キャンバス） ---
+    function draw() {
+      // 画面全体をクリア
+      ctx.fillStyle = '#080808';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // マップとプレイヤー基準のカメラオフセット計算（プレイヤー中央スクロール）
+      const zoom = Math.min(canvas.width, canvas.height) / 400; // 視認性の良い拡大率
+      const offsetX = canvas.width / 2 - player.x * zoom;
+      const offsetY = canvas.height / 2 - player.y * zoom;
+
+      ctx.save();
+      ctx.translate(offsetX, offsetY);
+      ctx.scale(zoom, zoom);
+
+      // 1. 地面（マス目のうっすらとしたグリッド）
+      ctx.strokeStyle = '#151515';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= gridCount; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * cellSize, 0);
+        ctx.lineTo(i * cellSize, mapSize);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0, i * cellSize);
+        ctx.lineTo(mapSize, i * cellSize);
+        ctx.stroke();
+      }
+
+      // 2. 壁、ロッカー、檻などの描画
+      for (let r = 0; r < gridCount; r++) {
+        for (let c = 0; c < gridCount; c++) {
+          const type = mapGrid[r][c];
+          const x = c * cellSize;
+          const y = r * cellSize;
+
+          if (type === 1) {
+            // 外周・コンクリート壁
+            ctx.fillStyle = '#1e1e24';
+            ctx.fillRect(x, y, cellSize, cellSize);
+            ctx.strokeStyle = '#2d2d35';
+            ctx.strokeRect(x, y, cellSize, cellSize);
+          } else if (type === 2) {
+            // 檻格子
+            ctx.fillStyle = '#0f0f12';
+            ctx.fillRect(x, y, cellSize, cellSize);
+            ctx.strokeStyle = '#4a5568';
+            ctx.lineWidth = 2;
+            for (let k = 1; k < 5; k++) {
+              ctx.beginPath();
+              ctx.moveTo(x + (cellSize/5)*k, y);
+              ctx.lineTo(x + (cellSize/5)*k, y + cellSize);
+              ctx.stroke();
+            }
+          } else if (type === 3) {
+            // ロッカー（隠れ場所）
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(x + 8, y + 4, cellSize - 16, cellSize - 8);
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(x + 8, y + 4, cellSize - 16, cellSize - 8);
+            
+            // ロッカーのスリット
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(x + 14, y + 12, cellSize - 28, 4);
+            ctx.fillRect(x + 14, y + 24, cellSize - 28, 4);
+          } else if (type === 5) {
+            // 非常脱出ゲート
+            if (keysCollected === totalKeys) {
+              ctx.fillStyle = '#10b981'; // 開放された緑
+            } else {
+              ctx.fillStyle = '#b91c1c'; // 閉鎖された赤
+            }
+            ctx.fillRect(x, y, cellSize, cellSize);
+            ctx.strokeStyle = '#34d399';
+            ctx.strokeRect(x, y, cellSize, cellSize);
+          }
+        }
+      }
+
+      // 3. 鍵アイテムの描画
+      keys.forEach(k => {
+        if (!k.collected) {
+          ctx.save();
+          ctx.translate(k.x, k.y);
+          // 回転・明滅アニメーション
+          const wave = Math.sin(Date.now() * 0.005) * 2;
+          
+          ctx.fillStyle = '#fbbf24';
+          ctx.strokeStyle = '#d97706';
+          ctx.lineWidth = 1.5;
+
+          // 鍵のリング部
+          ctx.beginPath();
+          ctx.arc(0, wave, 6, 0, Math.PI * 2);
+          ctx.stroke();
+          
+          // 鍵の先端部
+          ctx.fillRect(-2, wave + 6, 4, 12);
+          ctx.fillRect(2, wave + 12, 5, 3);
+          ctx.fillRect(2, wave + 15, 5, 3);
+          
+          // 光彩エフェクト
+          ctx.shadowColor = '#fbbf24';
+          ctx.shadowBlur = 15;
+          ctx.beginPath();
+          ctx.arc(0, wave, 3, 0, Math.PI * 2);
+          ctx.fill();
+          
+          ctx.restore();
+        }
+      });
+
+      // 4. モンスター達の描画
+      monsters.forEach(m => {
+        ctx.save();
+        ctx.translate(m.x, m.y);
+        ctx.rotate(m.angle);
+
+        // 異形特有の影
+        ctx.shadowColor = m.color;
+        ctx.shadowBlur = (m.state === 'chase') ? 20 : 8;
+
+        // モンスターコア
+        ctx.fillStyle = m.color;
+        ctx.beginPath();
+        ctx.arc(0, 0, m.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 牙・突起
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(m.radius, -5);
+        ctx.lineTo(m.radius + 8, 0);
+        ctx.lineTo(m.radius, 5);
+        ctx.fill();
+
+        // 視界（怪しい赤い光のコーン）
+        ctx.restore();
+        
+        // 巡回ルート（CCTVでのみ確認できる不穏なルート線として点線で薄く描画）
+        if (currentCameraId !== null) {
+          ctx.strokeStyle = `${m.color}15`;
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          m.waypoints.forEach((w, i) => {
+            if (i === 0) ctx.moveTo(w.x, w.y);
+            else ctx.lineTo(w.x, w.y);
+          });
+          ctx.closePath();
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      });
+
+      // 5. プレイヤーの描画
+      ctx.save();
+      ctx.translate(player.x, player.y);
+      ctx.rotate(player.angle);
+
+      if (isHiding) {
+        // 隠れているときはうっすら半透明
+        ctx.globalAlpha = 0.4;
+      }
+
+      // プレイヤーベース
+      ctx.fillStyle = '#0ea5e9';
+      ctx.shadowColor = '#0ea5e9';
+      ctx.shadowBlur = isSprinting ? 12 : 4;
+      ctx.beginPath();
+      ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 向いている方向を示すライト（懐中電灯の発光点）
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(player.radius - 2, 0, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+
+      // 6. 懐中電灯・暗闇エフェクトの重ね合わせ（プレイヤーを起点とした視野外の超暗転処理）
+      ctx.restore(); // 元のキャンバススケール（Translateなし）に戻す
+
+      // スクリーンサイズに合わせた暗闇レイヤー
+      ctx.save();
+      const pCanvasX = player.x * zoom + offsetX;
+      const pCanvasY = player.y * zoom + offsetY;
+
+      // 段階的な光グラデーション（懐中電灯）
+      const grad = ctx.createRadialGradient(
+        pCanvasX, pCanvasY, 15 * zoom, // 内円
+        pCanvasX, pCanvasY, (isHiding ? 40 : 150) * zoom // 外円（隠れているときは視野が狭くなる）
+      );
+
+      grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      grad.addColorStop(0.3, 'rgba(0, 0, 0, 0.2)');
+      grad.addColorStop(0.7, 'rgba(0, 0, 0, 0.75)');
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0.98)');
+
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+
+      // 7. 防犯カメラ(CCTV)エリアへのマッププロット反映
+      drawCCTVRadar();
+    }
+
+    // カメラ視野内の敵位置などを、右側のセキュリティモニターに簡易プロット
+    function drawCCTVRadar() {
+      // 監視カメラモニターの映像エフェクトをリアルタイムに歪ませる処理
+      const cam = cameras[currentCameraId];
+      if (!cam) return;
+
+      // カメラからプレイヤーへの距離、モンスターへの距離
+      const distToPlayer = Math.hypot(player.x - cam.x, player.y - cam.y);
+      let alertDetected = false;
+
+      // モンスターがカメラ範囲内にいるか？
+      monsters.forEach(m => {
+        const distToMonster = Math.hypot(m.x - cam.x, m.y - cam.y);
+        if (distToMonster < cam.range) {
+          alertDetected = true;
+        }
+      });
+
+      const label = document.getElementById('cctv-status');
+      if (alertDetected) {
+        label.textContent = "ENTITY DETECTED";
+        label.className = "absolute bottom-2 right-2 text-[9px] text-red-500 font-bold danger-pulse";
+      } else {
+        label.textContent = "SIGNAL CLEAR";
+        label.className = "absolute bottom-2 right-2 text-[9px] text-emerald-500 font-bold";
+      }
+    }
+  </script>
+</body>
+</html>
